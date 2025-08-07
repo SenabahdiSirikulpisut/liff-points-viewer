@@ -1,35 +1,22 @@
-<!DOCTYPE html><!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
   <title>Points Viewer Test</title>
-  <meta charset="UTF-8">
-  <style>
-    body {
-      font-family: sans-serif;
-      padding: 2rem;
-      max-width: 600px;
-      margin: auto;
-    }
-    #output {
-      background: #f4f4f4;
-      padding: 1rem;
-      border-radius: 8px;
-      margin-top: 1rem;
-    }
-  </style>
+  <meta charset="UTF-8" />
 </head>
 <body>
   <h1>Testing Backend: Bob’s Points</h1>
   <div id="output">Loading data...</div>
 
   <script>
-    const userId = "U2222222222"; // Hardcoded: Bob
-    const apiUrl = "https://script.google.com/macros/s/AKfycbw510ySG6kHwiW3RdUCzMsX67lQC0cyyXPDeW9S32c/exec?userId=" + userId;
+    const userId = "U2222222222"; // Bob
+    const apiUrl = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec?userId=" + userId;
 
     async function fetchPoints() {
       try {
         const res = await fetch(apiUrl);
-        const data = await res.json();
+        const text = await res.text();
+        const data = JSON.parse(text);
 
         if (data.error) {
           document.getElementById("output").innerText = "Error: " + data.error;
@@ -50,5 +37,3 @@
   </script>
 </body>
 </html>
-
-switch to backend test mode
