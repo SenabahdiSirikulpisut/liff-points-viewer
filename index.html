@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Points</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body>
+  <h1>Welcome</h1>
+  <div id="output">Loading...</div>
+
+  <script>
+    async function main() {
+      await liff.init({ liffId: "YOUR_LIFF_ID" });
+      if (!liff.isLoggedIn()) {
+        liff.login();
+        return;
+      }
+
+      const profile = await liff.getProfile();
+      const userId = profile.userId;
+
+      // Replace below with your Google Script URL
+      const apiUrl = "https://script.googleusercontent.com/macros/echo?user_content_key=...&lib=...&userId=" + userId;
+
+      try {
+        const res = await fetch(apiUrl);
+        const data = await res.json();
+
+        if (data.error) {
+          document.getElementById("output").innerText = data.error;
+        } else {
+          document.getElementById("output").innerHTML = `
+            Hello, ${data.name}!<br>
+            Points: ${data.points}<br>
+            Tier: ${data.tier}<br>
+            Badges: ${data.badges}
+          `;
+        }
+      } catch (err) {
+        document.getElementById("output").innerText = "Something went wrong.";
+      }
+    }
+
+    main();
+  </script>
+</body>
+</html>
