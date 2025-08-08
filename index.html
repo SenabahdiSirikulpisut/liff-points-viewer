@@ -1,39 +1,77 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Points Viewer Test</title>
+  <title>Points Viewer</title>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      text-align: center;
+    }
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 15px;
+      max-width: 350px;
+      margin: auto;
+      background: #f9f9f9;
+      box-shadow: 0px 2px 5px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+    }
+    .loading {
+      color: gray;
+    }
+  </style>
 </head>
 <body>
-  <h1>Testing Backend: Bob’s Points</h1>
-  <div id="output">Loading data...</div>
+  <h1>Points Viewer</h1>
+  <div id="output" class="loading">Loading data...</div>
 
   <script>
-    const userId = "U2222222222"; // Bob
-    const apiUrl = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec?userId=" + userId;
+    const liffId = "2007890960-Yjq6VQWo"; // Your LIFF ID
+    const scriptId = "YOUR_SCRIPT_ID";    // Replace with Google Apps Script deployment ID
 
-    async function fetchPoints() {
+    async function main() {
       try {
+        await liff.init({ liffId });
+
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+
+        const profile = await liff.getProfile();
+        const userId = profile.userId;
+
+        const apiUrl = `https://script.google.com/macros/s/${scriptId}/exec?userId=${userId}`;
         const res = await fetch(apiUrl);
-        const text = await res.text();
-        const data = JSON.parse(text);
+        const data = await res.json();
 
         if (data.error) {
           document.getElementById("output").innerText = "Error: " + data.error;
         } else {
           document.getElementById("output").innerHTML = `
-            <strong>Name:</strong> ${data.name}<br>
-            <strong>Points:</strong> ${data.points}<br>
-            <strong>Tier:</strong> ${data.tier}<br>
-            <strong>Badges:</strong> ${data.badges}
+            <div class="card">
+              <h2>${data.name}</h2>
+              <p><strong>Points:</strong> ${data.points}</p>
+              <p><strong>Tier:</strong> ${data.tier}</p>
+              <p><strong>Badges:</strong> ${data.badges}</p>
+            </div>
           `;
         }
+
       } catch (err) {
         document.getElementById("output").innerText = "Something went wrong: " + err;
+        console.error(err);
       }
     }
 
-    fetchPoints();
+    main();
   </script>
 </body>
 </html>
