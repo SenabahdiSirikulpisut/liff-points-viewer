@@ -29,26 +29,34 @@
         const userId = profile.userId;
         const displayName = profile.displayName;
 
-        // Call Google Apps Script to get or create the user record
+        // Call Google Apps Script backend with userId and name
         const apiUrl = `${scriptUrl}?userId=${encodeURIComponent(userId)}&name=${encodeURIComponent(displayName)}`;
         const res = await fetch(apiUrl);
         const text = await res.text();
+
+        // Extract JSON string from HTML script wrapper (CORS workaround)
+        const jsonMatch = text.match(/document\.write\('(.+)'\);/);
         let data;
 
-        try {
-          data = JSON.parse(text);
-        } catch {
-          // If no data exists yet, start fresh
-          data = { name: displayName, points: 0, tier: "Bronze", badges: [] };
+        if (jsonMatch && jsonMatch[1]) {
+          // Unescape characters
+          const jsonStr = jsonMatch[1].replace(/\\'/g, "'").replace(/\\\\/g, "\\");
+          data = JSON.parse(jsonStr);
+        } else {
+          data = { error: "Failed to parse backend response" };
         }
 
-        // Show the user’s points
-        document.getElementById("output").innerHTML = `
-          <strong>Name:</strong> ${data.name}<br>
-          <strong>Points:</strong> ${data.points}<br>
-          <strong>Tier:</strong> ${data.tier}<br>
-          <strong>Badges:</strong> ${Array.isArray(data.badges) ? data.badges.join(", ") : ""}
-        `;
+        // Show user points or error message
+        if (data.error) {
+          document.getElementById("output").innerText = "Error: " + data.error;
+        } else {
+          document.getElementById("output").innerHTML = `
+            <strong>Name:</strong> ${data.name}<br>
+            <strong>Points:</strong> ${data.points}<br>
+            <strong>Tier:</strong> ${data.tier}<br>
+            <strong>Badges:</strong> ${Array.isArray(data.badges) ? data.badges.join(", ") : data.badges}
+          `;
+        }
       } catch (err) {
         document.getElementById("output").innerText = "Something went wrong: " + err;
       }
