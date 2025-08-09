@@ -13,7 +13,8 @@
   <p id="error" style="color:red;"></p>
 
   <script>
-    // Load LIFF first
+    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbw510ySG6kHwiW3RdUCzMsX67lQC0cyyXPDeW9S32c/exec";
+
     liff.init({ liffId: "2007890960-Yjq6VQWo" })
       .then(() => {
         if (!liff.isLoggedIn()) {
@@ -24,8 +25,6 @@
           .then(profile => {
             const userId = profile.userId;
             const name = profile.displayName;
-
-            // Call backend via JSONP
             fetchPoints(userId, name);
           })
           .catch(err => {
@@ -37,29 +36,29 @@
       });
 
     function fetchPoints(userId, name) {
-      const script = document.createElement("script");
-      const backendUrl = "https://script.google.com/macros/s/AKfycbw510ySG6kHwiW3RdUCzMsX67lQC0cyyXPDeW9S32c/dev";
-      const callbackName = "handleData";
-      script.src = `${backendUrl}?callback=${callbackName}&userId=${encodeURIComponent(userId)}&name=${encodeURIComponent(name)}`;
-      script.onerror = function() {
-        document.getElementById("error").textContent = "Something went wrong loading points data.";
-      };
-      document.body.appendChild(script);
-    }
-
-    function handleData(data) {
-      if (data.error) {
-        document.getElementById("error").textContent = data.error;
-        return;
-      }
-      document.getElementById("welcome").textContent = `Welcome, ${data.name}`;
-      document.getElementById("points").textContent = `Points: ${data.points}`;
-      document.getElementById("tier").textContent = `Tier: ${data.tier}`;
-      document.getElementById("badges").textContent = `Badges: ${data.badges}`;
+      fetch(`${BACKEND_URL}?userId=${encodeURIComponent(userId)}&name=${encodeURIComponent(name)}`)
+        .then(response => {
+          if (!response.ok) throw new Error("Network response was not ok");
+          return response.json();
+        })
+        .then(data => {
+          if (data.error) {
+            document.getElementById("error").textContent = data.error;
+            return;
+          }
+          document.getElementById("welcome").textContent = `Welcome, ${data.name}`;
+          document.getElementById("points").textContent = `Points: ${data.points}`;
+          document.getElementById("tier").textContent = `Tier: ${data.tier}`;
+          document.getElementById("badges").textContent = `Badges: ${data.badges}`;
+        })
+        .catch(err => {
+          document.getElementById("error").textContent = "Fetch error: " + err;
+        });
     }
   </script>
 </body>
 </html>
+
 
 
 
