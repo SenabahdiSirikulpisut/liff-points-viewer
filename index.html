@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   <title>Points System</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </head>
@@ -13,47 +13,45 @@
   <p id="error" style="color:red;"></p>
 
   <script>
-    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbw510ySG6kHwiW3RdUCzMsX67lQC0cyyXPDeW9S32c/exec";
+    const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbw510ySG6kHwiW3RdUCzMsX67lQC0cyyXPDeW9S32c/dev'; // Replace with your GAS URL
+    const LIFF_ID = '2007890960-Yjq6VQWo'; // Your LIFF ID
 
-    liff.init({ liffId: "2007890960-Yjq6VQWo" })
+    liff.init({ liffId: LIFF_ID })
       .then(() => {
         if (!liff.isLoggedIn()) {
           liff.login();
           return;
         }
-        liff.getProfile()
-          .then(profile => {
-            const userId = profile.userId;
-            const name = profile.displayName;
-            fetchPoints(userId, name);
-          })
-          .catch(err => {
-            document.getElementById("error").textContent = "Profile error: " + err;
-          });
+        return liff.getProfile();
+      })
+      .then(profile => {
+        const userId = profile.userId;
+        const name = profile.displayName;
+        fetchPoints(userId, name);
       })
       .catch(err => {
-        document.getElementById("error").textContent = "LIFF init error: " + err;
+        document.getElementById('error').textContent = 'Error: ' + err;
       });
 
     function fetchPoints(userId, name) {
-      fetch(`${BACKEND_URL}?userId=${encodeURIComponent(userId)}&name=${encodeURIComponent(name)}`)
-        .then(response => {
-          if (!response.ok) throw new Error("Network response was not ok");
-          return response.json();
-        })
-        .then(data => {
-          if (data.error) {
-            document.getElementById("error").textContent = data.error;
-            return;
-          }
-          document.getElementById("welcome").textContent = `Welcome, ${data.name}`;
-          document.getElementById("points").textContent = `Points: ${data.points}`;
-          document.getElementById("tier").textContent = `Tier: ${data.tier}`;
-          document.getElementById("badges").textContent = `Badges: ${data.badges}`;
-        })
-        .catch(err => {
-          document.getElementById("error").textContent = "Fetch error: " + err;
-        });
+      const callbackName = 'handleData';
+      const script = document.createElement('script');
+      script.src = `${BACKEND_URL}?callback=${callbackName}&userId=${encodeURIComponent(userId)}&name=${encodeURIComponent(name)}`;
+      script.onerror = () => {
+        document.getElementById('error').textContent = 'Failed to load data from backend.';
+      };
+      document.body.appendChild(script);
+    }
+
+    function handleData(data) {
+      if (data.error) {
+        document.getElementById('error').textContent = data.error;
+        return;
+      }
+      document.getElementById('welcome').textContent = `Welcome, ${data.name}`;
+      document.getElementById('points').textContent = `Points: ${data.points}`;
+      document.getElementById('tier').textContent = `Tier: ${data.tier}`;
+      document.getElementById('badges').textContent = `Badges: ${data.badges}`;
     }
   </script>
 </body>
