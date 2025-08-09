@@ -1,71 +1,67 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Points Viewer</title>
-  <meta charset="UTF-8" />
+  <meta charset="utf-8">
+  <title>Points System</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </head>
 <body>
-  <h1>Welcome to Our Points System</h1>
-  <div id="output">Loading data...</div>
+  <h1 id="welcome">Welcome to our points system</h1>
+  <p id="points"></p>
+  <p id="tier"></p>
+  <p id="badges"></p>
+  <p id="error" style="color:red;"></p>
 
   <script>
-    const liffId = "2007890960-Yjq6VQWo"; // Your LIFF ID
-    const scriptUrl = "https://script.google.com/macros/s/AKfycbx2XAQkgKmQJ9NN6LSuIlg-9-LjQ-zTLy1ts4ukEBRqehY4FeJX46TnkErsi3ENMrcH/exec";
-
-    async function main() {
-      try {
-        // Initialize LIFF
-        await liff.init({ liffId });
-
-        // Ensure the user is logged in
+    // Load LIFF first
+    liff.init({ liffId: "YOUR_LIFF_ID" })
+      .then(() => {
         if (!liff.isLoggedIn()) {
           liff.login();
           return;
         }
+        liff.getProfile()
+          .then(profile => {
+            const userId = profile.userId;
+            const name = profile.displayName;
 
-        // Get user profile
-        const profile = await liff.getProfile();
-        const userId = profile.userId;
-        const displayName = profile.displayName;
+            // Call backend via JSONP
+            fetchPoints(userId, name);
+          })
+          .catch(err => {
+            document.getElementById("error").textContent = "Profile error: " + err;
+          });
+      })
+      .catch(err => {
+        document.getElementById("error").textContent = "LIFF init error: " + err;
+      });
 
-        // Call Google Apps Script backend with userId and name
-        const apiUrl = `${scriptUrl}?userId=${encodeURIComponent(userId)}&name=${encodeURIComponent(displayName)}`;
-        const res = await fetch(apiUrl);
-        const text = await res.text();
-
-        // Extract JSON string from HTML script wrapper (CORS workaround)
-        const jsonMatch = text.match(/document\.write\('(.+)'\);/);
-        let data;
-
-        if (jsonMatch && jsonMatch[1]) {
-          // Unescape characters
-          const jsonStr = jsonMatch[1].replace(/\\'/g, "'").replace(/\\\\/g, "\\");
-          data = JSON.parse(jsonStr);
-        } else {
-          data = { error: "Failed to parse backend response" };
-        }
-
-        // Show user points or error message
-        if (data.error) {
-          document.getElementById("output").innerText = "Error: " + data.error;
-        } else {
-          document.getElementById("output").innerHTML = `
-            <strong>Name:</strong> ${data.name}<br>
-            <strong>Points:</strong> ${data.points}<br>
-            <strong>Tier:</strong> ${data.tier}<br>
-            <strong>Badges:</strong> ${Array.isArray(data.badges) ? data.badges.join(", ") : data.badges}
-          `;
-        }
-      } catch (err) {
-        document.getElementById("output").innerText = "Something went wrong: " + err;
-      }
+    function fetchPoints(userId, name) {
+      const script = document.createElement("script");
+      const backendUrl = "https://script.google.com/macros/s/AKfycbw510ySG6kHwiW3RdUCzMsX67lQC0cyyXPDeW9S32c/dev";
+      const callbackName = "handleData";
+      script.src = `${backendUrl}?callback=${callbackName}&userId=${encodeURIComponent(userId)}&name=${encodeURIComponent(name)}`;
+      script.onerror = function() {
+        document.getElementById("error").textContent = "Something went wrong loading points data.";
+      };
+      document.body.appendChild(script);
     }
 
-    main();
+    function handleData(data) {
+      if (data.error) {
+        document.getElementById("error").textContent = data.error;
+        return;
+      }
+      document.getElementById("welcome").textContent = `Welcome, ${data.name}`;
+      document.getElementById("points").textContent = `Points: ${data.points}`;
+      document.getElementById("tier").textContent = `Tier: ${data.tier}`;
+      document.getElementById("badges").textContent = `Badges: ${data.badges}`;
+    }
   </script>
 </body>
 </html>
+
+
 
 
 
