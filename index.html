@@ -1,48 +1,49 @@
-<script>
-  const backendUrl = "https://script.google.com/macros/s/AKfycbwMZpGW2msVBYV_JiWCnhdA-yyt1njcfEwPmKw1TrEDMs7YTQDbUP_v4k_mwDQjvtiS/exec"; // your GAS URL
-  const callbackName = "handleData";
-  const testUserId = "123"; // change to your real ID
-  const testName = "John";
+<!DOCTYPE html>
+<html>
+<head>
+  <title>LINE Points</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body>
+  <div id="userInfo"></div>
 
-  // Step 1: Test request without JSONP parsing
-  async function testBackend() {
-    const url = `${backendUrl}?callback=${callbackName}&userId=${encodeURIComponent(testUserId)}&name=${encodeURIComponent(testName)}`;
-    console.log("Testing backend URL:", url);
+  <script>
+    const GAS_URL = "YOUR_GOOGLE_SCRIPT_WEB_APP_URL";
 
-    try {
-      const res = await fetch(url);
-      const text = await res.text();
-      console.log("RAW RESPONSE from backend:\n", text);
+    async function main() {
+      await liff.init({ liffId: "YOUR_LIFF_ID" });
 
-      // Step 2: Check if it looks like JSONP
-      if (text.startsWith(callbackName + "(")) {
-        console.log("✅ Backend is returning JSONP correctly. Now injecting script...");
-        loadJsonp(url);
-      } else {
-        console.error("❌ Backend is NOT returning JSONP format. Check GAS code.");
+      if (!liff.isLoggedIn()) {
+        liff.login();
+        return;
       }
-    } catch (err) {
-      console.error("❌ Error fetching backend:", err);
+
+      const profile = await liff.getProfile();
+      const userId = profile.userId;
+      const name = profile.displayName;
+
+      // Send data to GAS
+      const response = await fetch(GAS_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ userId, name })
+      });
+
+      const data = await response.json();
+
+      // Display user info
+      document.getElementById("userInfo").innerHTML = `
+        <h3>Hello, ${data.name}</h3>
+        <p>Points: ${data.points}</p>
+        <p>Tier: ${data.tier}</p>
+        <p>Badges: ${data.badges}</p>
+      `;
     }
-  }
 
-  // Step 3: JSONP loader
-  function loadJsonp(url) {
-    const script = document.createElement("script");
-    script.src = url;
-    document.body.appendChild(script);
-  }
-
-  // Step 4: Define global callback
-  function handleData(data) {
-    console.log("✅ JSONP callback executed. Data:", data);
-  }
-
-  // Run the test
-  testBackend();
-</script>
-
-
+    main();
+  </script>
+</body>
+</html>
 
 
 
