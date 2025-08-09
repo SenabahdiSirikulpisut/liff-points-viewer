@@ -1,53 +1,90 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>LINE Points</title>
+  <meta charset="utf-8" />
+  <title>Points System</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding:20px; max-width:600px; margin:auto; }
+    .card { padding:12px; border:1px solid #ddd; border-radius:8px; }
+    #loading { color: #777; }
+    #error { color: red; }
+  </style>
 </head>
 <body>
-  <div id="userInfo"></div>
+  <h1>Points Viewer</h1>
+  <div id="loading">Loading...</div>
+  <div id="error"></div>
+
+  <div id="card" class="card" style="display:none;">
+    <h2 id="welcome">Welcome</h2>
+    <p><strong>Points:</strong> <span id="points">0</span></p>
+    <p><strong>Tier:</strong> <span id="tier">Bronze</span></p>
+    <p><strong>Badges:</strong> <span id="badges"></span></p>
+  </div>
 
   <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbwMZpGW2msVBYV_JiWCnhdA-yyt1njcfEwPmKw1TrEDMs7YTQDbUP_v4k_mwDQjvtiS/exec";
+    // CONFIG: set your values here
+    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxGjg8JPJFrxydMsCza1sCqcxZIwFIp_8BtIQ1Mb1rI_bD670dI5xO68c578CumSVIX/exec"; // <- replace with your exec URL
+    const LIFF_ID = "2007890960-Yjq6VQWo"; // <- replace with your LIFF ID
 
     async function main() {
-      await liff.init({ liffId: "2007890960-Yjq6VQWo" });
+      try {
+        await liff.init({ liffId: LIFF_ID });
 
-      if (!liff.isLoggedIn()) {
-        liff.login();
-        return;
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+
+        const profile = await liff.getProfile();
+        const userId = profile.userId;
+        const displayName = profile.displayName || "";
+
+        // POST using text/plain to avoid preflight on Apps Script
+        const res = await fetch(BACKEND_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+          },
+          body: JSON.stringify({ userId, name: displayName })
+        });
+
+        if (!res.ok) throw new Error("Network response not ok: " + res.status);
+
+        const data = await res.json();
+
+        if (data.error) {
+          showError(data.error);
+          return;
+        }
+
+        // Populate UI
+        document.getElementById("welcome").textContent = `Welcome, ${data.name || displayName || data.userId}`;
+        document.getElementById("points").textContent = data.points ?? 0;
+        document.getElementById("tier").textContent = data.tier || "Bronze";
+        document.getElementById("badges").textContent = data.badges || "(none)";
+
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("card").style.display = "block";
+
+      } catch (err) {
+        showError(err.message || String(err));
       }
+    }
 
-      const profile = await liff.getProfile();
-      const userId = profile.userId;
-      const name = profile.displayName;
-
-      // Send data to GAS
-      const response = await fetch(GAS_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ userId, name })
-      });
-
-      const data = await response.json();
-
-      // Display user info
-      document.getElementById("userInfo").innerHTML = `
-        <h3>Hello, ${data.name}</h3>
-        <p>Points: ${data.points}</p>
-        <p>Tier: ${data.tier}</p>
-        <p>Badges: ${data.badges}</p>
-      `;
+    function showError(msg) {
+      document.getElementById("loading").style.display = "none";
+      document.getElementById("card").style.display = "none";
+      document.getElementById("error").textContent = "Error: " + msg;
+      console.error(msg);
     }
 
     main();
   </script>
 </body>
 </html>
-
-
-
-
 
 
 
