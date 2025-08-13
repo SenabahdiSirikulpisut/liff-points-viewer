@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <title>7‑Eleven Membership</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
     body { font-family: Arial, sans-serif; padding:20px; max-width:600px; margin:auto; }
-    .card { padding:12px; border:1px solid #ddd; border-radius:8px; }
+    .card { padding:12px; border:1px solid #ddd; border-radius:8px; margin-top:20px; }
     #loading { color: #777; }
-    #error { color: red; }
+    #error { color: red; margin-top:10px; }
     button { padding: 10px 16px; border:none; background:#0078FF; color:white; border-radius:6px; cursor:pointer; margin-top:10px;}
     button:hover { background:#005BBB; }
   </style>
@@ -30,13 +30,16 @@
   <script>
     const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxdYfuRnpEVGahWXGLFsj4kfVXJ_CLQBOwwnK0HWBEHWqm7gBzHmhaCd__gL9MeUuQf/exec";
     const LIFF_ID = "2007890960-Yjq6VQWo";
-
     let currentUser = { userId: null, displayName: null };
 
     async function main() {
       try {
         await liff.init({ liffId: LIFF_ID });
-        if (!liff.isLoggedIn()) { liff.login(); return; }
+
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
 
         const profile = await liff.getProfile();
         currentUser.userId = profile.userId;
@@ -49,6 +52,7 @@
           if (!password) return;
           await recordCoffeePurchase(password);
         };
+
       } catch (err) {
         showError(err.message || String(err));
       }
@@ -62,6 +66,7 @@
           body: JSON.stringify({ userId: currentUser.userId, name: currentUser.displayName })
         });
         if (!res.ok) throw new Error("Network response not ok: " + res.status);
+
         const data = await res.json();
         if (data.error) { showError(data.error); return; }
         renderUserData(data);
@@ -75,16 +80,18 @@
         const res = await fetch(BACKEND_URL, {
           method: "POST",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({
-            userId: currentUser.userId,
-            name: currentUser.displayName,
-            action: "coffee_purchase",
-            password
+          body: JSON.stringify({ 
+            userId: currentUser.userId, 
+            name: currentUser.displayName, 
+            action: "coffee_purchase", 
+            password 
           })
         });
         if (!res.ok) throw new Error("Network response not ok: " + res.status);
+
         const data = await res.json();
         if (data.error) { alert("Error: " + data.error); return; }
+
         renderUserData(data);
         alert("Coffee purchase recorded! Points updated.");
       } catch (err) {
@@ -114,5 +121,3 @@
   </script>
 </body>
 </html>
-
-
