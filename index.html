@@ -2,39 +2,63 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>7‑Eleven Membership</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>7-Eleven Membership</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; padding: 16px; max-width: 600px; margin: auto; background: #f7f7f7; }
-    h1 { text-align: center; color: #0078FF; }
-    .card { background: white; padding: 16px; margin: 12px 0; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-    .progress-bar { height: 12px; background: #ddd; border-radius: 6px; margin-top: 4px; overflow: hidden; }
-    .progress { height: 100%; background: #0078FF; width: 0%; transition: width 0.3s; }
-    button { padding: 10px 16px; border: none; background: #0078FF; color: white; border-radius: 8px; cursor: pointer; margin-top: 8px; width: 100%; }
-    button:hover { background: #005BBB; }
-    .badge { display: inline-block; background: #FFD700; color: #333; padding: 4px 8px; margin: 2px; border-radius: 6px; font-size: 0.85em; }
-    #error { color: red; text-align: center; margin: 8px 0; }
+    body { font-family: Arial, sans-serif; padding:20px; max-width:600px; margin:auto; background:#f0f0f0; }
+    #loading { color: #777; text-align:center; margin-top:50px; }
+    #error { color: red; text-align:center; margin-top:20px; }
+
+    /* Member card */
+    .member-card {
+      background: linear-gradient(135deg, #cd7f32, #ffa500); /* Bronze default */
+      color: white;
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      position: relative;
+      margin-top:20px;
+    }
+    .member-card .tier-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(255,255,255,0.8);
+      color: #333;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-weight: bold;
+      font-size:14px;
+    }
+    .member-card h2 { margin: 0; font-size: 24px; }
+    .member-card p { margin: 6px 0; font-size: 18px; }
+
+    /* Badges */
+    #cardBadges { margin-top:12px; }
+    #cardBadges img { width:40px; margin:4px; }
+
+    /* Button */
+    button { 
+      padding: 10px 16px; border:none; background:#0078FF; color:white; border-radius:6px; 
+      cursor:pointer; margin-top:16px; font-size:16px; 
+    }
+    button:hover { background:#005BBB; }
+
   </style>
 </head>
 <body>
-  <h1>7‑Eleven Membership</h1>
-  <div id="loading" style="text-align:center;">Loading...</div>
+  <h1 style="text-align:center;">7-Eleven Membership</h1>
+  <div id="loading">Loading...</div>
   <div id="error"></div>
 
-  <div id="card" class="card" style="display:none;">
-    <h2 id="welcome">Welcome</h2>
-
-    <p><strong>Points:</strong> <span id="points">0</span></p>
-    <div class="progress-bar">
-      <div class="progress" id="pointsProgress"></div>
-    </div>
-
-    <p><strong>Tier:</strong> <span id="tier">Bronze</span></p>
-    <p><strong>Badges:</strong> <span id="badges"></span></p>
-
+  <div id="card" class="member-card" style="display:none;">
+    <div class="tier-badge" id="tierBadge">Bronze</div>
+    <h2 id="cardName">Welcome</h2>
+    <p>Points: <span id="cardPoints">0</span></p>
+    <div id="cardBadges"></div>
     <button id="coffeeBtn">Record Coffee Purchase</button>
-    <button id="redeemBtn">Redeem Reward</button>
   </div>
 
   <script>
@@ -60,13 +84,7 @@
           await recordCoffeePurchase(password);
         };
 
-        document.getElementById("redeemBtn").onclick = async () => {
-          await redeemReward();
-        };
-
-      } catch (err) {
-        showError(err.message || String(err));
-      }
+      } catch (err) { showError(err.message || String(err)); }
     }
 
     async function fetchAndRender() {
@@ -76,15 +94,11 @@
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({ userId: currentUser.userId, name: currentUser.displayName })
         });
-
         if (!res.ok) throw new Error("Network response not ok: " + res.status);
         const data = await res.json();
         if (data.error) { showError(data.error); return; }
-
         renderUserData(data);
-      } catch (err) {
-        showError(err.message || String(err));
-      }
+      } catch (err) { showError(err.message || String(err)); }
     }
 
     async function recordCoffeePurchase(password) {
@@ -92,13 +106,16 @@
         const res = await fetch(BACKEND_URL, {
           method: "POST",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ userId: currentUser.userId, name: currentUser.displayName, action: "coffee_purchase", password })
+          body: JSON.stringify({ 
+            userId: currentUser.userId, 
+            name: currentUser.displayName, 
+            action: "coffee_purchase",
+            password
+          })
         });
-
         if (!res.ok) throw new Error("Network response not ok: " + res.status);
         const data = await res.json();
         if (data.error) { alert("Error: " + data.error); return; }
-
         renderUserData(data);
         alert("Coffee purchase recorded! Points updated.");
       } catch (err) {
@@ -107,42 +124,39 @@
       }
     }
 
-    async function redeemReward() {
-      try {
-        const res = await fetch(BACKEND_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ userId: currentUser.userId, name: currentUser.displayName, action: "redeem_reward" })
-        });
-
-        if (!res.ok) throw new Error("Network response not ok: " + res.status);
-        const data = await res.json();
-        if (data.error) { alert("Error: " + data.error); return; }
-
-        renderUserData(data);
-        alert("Reward redeemed successfully!");
-      } catch (err) {
-        alert("Failed to redeem reward: " + err.message);
-        console.error(err);
-      }
-    }
-
     function renderUserData(data) {
-      document.getElementById("welcome").textContent = `Welcome, ${data.name || currentUser.displayName || data.userId}`;
-      document.getElementById("points").textContent = data.points ?? 0;
-      document.getElementById("tier").textContent = data.tier || "Bronze";
+      document.getElementById("cardName").textContent = `Welcome, ${data.name || currentUser.displayName || data.userId}`;
+      animatePoints(data.points ?? 0);
+      document.getElementById("tierBadge").textContent = data.tier || "Bronze";
+      setCardTierColor(data.tier);
 
+      // Render badges
       const badges = (data.badges || "").split(",").map(b => b.trim()).filter(Boolean);
-      document.getElementById("badges").innerHTML = badges.map(b => `<span class="badge">${b}</span>`).join(" ") || "(none)";
-
-      // Update progress bar to next tier (Bronze->Silver:50pts, Silver->Gold:100pts)
-      let nextTierPoints = data.tier === "Bronze" ? 50 : data.tier === "Silver" ? 100 : 100;
-      let progressPercent = Math.min(100, (data.points / nextTierPoints) * 100);
-      document.getElementById("pointsProgress").style.width = progressPercent + "%";
+      document.getElementById("cardBadges").innerHTML = badges.map(b =>
+        `<img src="https://via.placeholder.com/40?text=${encodeURIComponent(b)}" alt="${b}">`
+      ).join("");
 
       document.getElementById("loading").style.display = "none";
       document.getElementById("card").style.display = "block";
       document.getElementById("error").textContent = "";
+    }
+
+    function setCardTierColor(tier) {
+      const card = document.getElementById("card");
+      if(tier === "Bronze") card.style.background = "linear-gradient(135deg, #cd7f32, #ffa500)";
+      else if(tier === "Silver") card.style.background = "linear-gradient(135deg, #c0c0c0, #e0e0e0)";
+      else if(tier === "Gold") card.style.background = "linear-gradient(135deg, #ffd700, #ffea00)";
+    }
+
+    function animatePoints(newPoints) {
+      const el = document.getElementById("cardPoints");
+      let current = Number(el.textContent);
+      const step = (newPoints - current) / 20;
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i++ >= 20) { el.textContent = newPoints; clearInterval(interval); }
+        else el.textContent = Math.round(current + step * i);
+      }, 20);
     }
 
     function showError(msg) {
