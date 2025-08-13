@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>7-Eleven Membership</title>
+  <title>7‑Eleven Membership</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
@@ -15,7 +15,7 @@
   </style>
 </head>
 <body>
-  <h1>7-Eleven Membership</h1>
+  <h1>7‑Eleven Membership</h1>
   <div id="loading">Loading...</div>
   <div id="error"></div>
 
@@ -36,7 +36,6 @@
     async function main() {
       try {
         await liff.init({ liffId: LIFF_ID });
-
         if (!liff.isLoggedIn()) { liff.login(); return; }
 
         const profile = await liff.getProfile();
@@ -50,8 +49,9 @@
           if (!password) return;
           await recordCoffeePurchase(password);
         };
-
-      } catch (err) { showError(err.message || String(err)); }
+      } catch (err) {
+        showError(err.message || String(err));
+      }
     }
 
     async function fetchAndRender() {
@@ -61,12 +61,13 @@
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({ userId: currentUser.userId, name: currentUser.displayName })
         });
-
         if (!res.ok) throw new Error("Network response not ok: " + res.status);
         const data = await res.json();
         if (data.error) { showError(data.error); return; }
         renderUserData(data);
-      } catch (err) { showError(err.message || String(err)); }
+      } catch (err) {
+        showError(err.message || String(err));
+      }
     }
 
     async function recordCoffeePurchase(password) {
@@ -74,21 +75,22 @@
         const res = await fetch(BACKEND_URL, {
           method: "POST",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ 
-            userId: currentUser.userId, 
-            name: currentUser.displayName, 
+          body: JSON.stringify({
+            userId: currentUser.userId,
+            name: currentUser.displayName,
             action: "coffee_purchase",
             password
           })
         });
-
         if (!res.ok) throw new Error("Network response not ok: " + res.status);
         const data = await res.json();
         if (data.error) { alert("Error: " + data.error); return; }
-
         renderUserData(data);
         alert("Coffee purchase recorded! Points updated.");
-      } catch (err) { alert("Failed to record purchase: " + err.message); console.error(err); }
+      } catch (err) {
+        alert("Failed to record purchase: " + err.message);
+        console.error(err);
+      }
     }
 
     function renderUserData(data) {
@@ -112,5 +114,4 @@
   </script>
 </body>
 </html>
-
 
