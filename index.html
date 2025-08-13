@@ -6,40 +6,47 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; padding:20px; max-width:600px; margin:auto; }
-    .card { padding:12px; border:1px solid #ddd; border-radius:8px; margin-top:20px; }
-    #loading { color: #777; }
-    #error { color: red; margin-top:10px; }
-    button { padding: 10px 16px; border:none; background:#0078FF; color:white; border-radius:6px; cursor:pointer; margin-top:10px;}
-    button:hover { background:#005BBB; }
+    body { font-family: Arial, sans-serif; padding: 16px; max-width: 600px; margin: auto; background: #f7f7f7; }
+    h1 { text-align: center; color: #0078FF; }
+    .card { background: white; padding: 16px; margin: 12px 0; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .progress-bar { height: 12px; background: #ddd; border-radius: 6px; margin-top: 4px; overflow: hidden; }
+    .progress { height: 100%; background: #0078FF; width: 0%; transition: width 0.3s; }
+    button { padding: 10px 16px; border: none; background: #0078FF; color: white; border-radius: 8px; cursor: pointer; margin-top: 8px; width: 100%; }
+    button:hover { background: #005BBB; }
+    .badge { display: inline-block; background: #FFD700; color: #333; padding: 4px 8px; margin: 2px; border-radius: 6px; font-size: 0.85em; }
+    #error { color: red; text-align: center; margin: 8px 0; }
   </style>
 </head>
 <body>
   <h1>7‑Eleven Membership</h1>
-  <div id="loading">Loading...</div>
+  <div id="loading" style="text-align:center;">Loading...</div>
   <div id="error"></div>
 
   <div id="card" class="card" style="display:none;">
     <h2 id="welcome">Welcome</h2>
+
     <p><strong>Points:</strong> <span id="points">0</span></p>
+    <div class="progress-bar">
+      <div class="progress" id="pointsProgress"></div>
+    </div>
+
     <p><strong>Tier:</strong> <span id="tier">Bronze</span></p>
     <p><strong>Badges:</strong> <span id="badges"></span></p>
+
     <button id="coffeeBtn">Record Coffee Purchase</button>
+    <button id="redeemBtn">Redeem Reward</button>
   </div>
 
   <script>
     const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxdYfuRnpEVGahWXGLFsj4kfVXJ_CLQBOwwnK0HWBEHWqm7gBzHmhaCd__gL9MeUuQf/exec";
     const LIFF_ID = "2007890960-Yjq6VQWo";
+
     let currentUser = { userId: null, displayName: null };
 
     async function main() {
       try {
         await liff.init({ liffId: LIFF_ID });
-
-        if (!liff.isLoggedIn()) {
-          liff.login();
-          return;
-        }
+        if (!liff.isLoggedIn()) { liff.login(); return; }
 
         const profile = await liff.getProfile();
         currentUser.userId = profile.userId;
@@ -51,6 +58,10 @@
           const password = prompt("Enter password to record coffee purchase:");
           if (!password) return;
           await recordCoffeePurchase(password);
+        };
+
+        document.getElementById("redeemBtn").onclick = async () => {
+          await redeemReward();
         };
 
       } catch (err) {
@@ -65,10 +76,11 @@
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({ userId: currentUser.userId, name: currentUser.displayName })
         });
-        if (!res.ok) throw new Error("Network response not ok: " + res.status);
 
+        if (!res.ok) throw new Error("Network response not ok: " + res.status);
         const data = await res.json();
         if (data.error) { showError(data.error); return; }
+
         renderUserData(data);
       } catch (err) {
         showError(err.message || String(err));
@@ -80,15 +92,10 @@
         const res = await fetch(BACKEND_URL, {
           method: "POST",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ 
-            userId: currentUser.userId, 
-            name: currentUser.displayName, 
-            action: "coffee_purchase", 
-            password 
-          })
+          body: JSON.stringify({ userId: currentUser.userId, name: currentUser.displayName, action: "coffee_purchase", password })
         });
-        if (!res.ok) throw new Error("Network response not ok: " + res.status);
 
+        if (!res.ok) throw new Error("Network response not ok: " + res.status);
         const data = await res.json();
         if (data.error) { alert("Error: " + data.error); return; }
 
@@ -100,11 +107,39 @@
       }
     }
 
+    async function redeemReward() {
+      try {
+        const res = await fetch(BACKEND_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ userId: currentUser.userId, name: currentUser.displayName, action: "redeem_reward" })
+        });
+
+        if (!res.ok) throw new Error("Network response not ok: " + res.status);
+        const data = await res.json();
+        if (data.error) { alert("Error: " + data.error); return; }
+
+        renderUserData(data);
+        alert("Reward redeemed successfully!");
+      } catch (err) {
+        alert("Failed to redeem reward: " + err.message);
+        console.error(err);
+      }
+    }
+
     function renderUserData(data) {
       document.getElementById("welcome").textContent = `Welcome, ${data.name || currentUser.displayName || data.userId}`;
       document.getElementById("points").textContent = data.points ?? 0;
       document.getElementById("tier").textContent = data.tier || "Bronze";
-      document.getElementById("badges").textContent = data.badges || "(none)";
+
+      const badges = (data.badges || "").split(",").map(b => b.trim()).filter(Boolean);
+      document.getElementById("badges").innerHTML = badges.map(b => `<span class="badge">${b}</span>`).join(" ") || "(none)";
+
+      // Update progress bar to next tier (Bronze->Silver:50pts, Silver->Gold:100pts)
+      let nextTierPoints = data.tier === "Bronze" ? 50 : data.tier === "Silver" ? 100 : 100;
+      let progressPercent = Math.min(100, (data.points / nextTierPoints) * 100);
+      document.getElementById("pointsProgress").style.width = progressPercent + "%";
+
       document.getElementById("loading").style.display = "none";
       document.getElementById("card").style.display = "block";
       document.getElementById("error").textContent = "";
