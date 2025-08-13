@@ -10,6 +10,8 @@
     .card { padding:12px; border:1px solid #ddd; border-radius:8px; }
     #loading { color: #777; }
     #error { color: red; }
+    button { padding: 10px 16px; border:none; background:#0078FF; color:white; border-radius:6px; cursor:pointer; margin-top:10px;}
+    button:hover { background:#005BBB; }
   </style>
 </head>
 <body>
@@ -22,12 +24,14 @@
     <p><strong>Points:</strong> <span id="points">0</span></p>
     <p><strong>Tier:</strong> <span id="tier">Bronze</span></p>
     <p><strong>Badges:</strong> <span id="badges"></span></p>
+    <button id="coffeeBtn">Record Coffee Purchase</button>
   </div>
 
   <script>
-    // CONFIG: set your values here
-    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxGjg8JPJFrxydMsCza1sCqcxZIwFIp_8BtIQ1Mb1rI_bD670dI5xO68c578CumSVIX/exec"; // <- replace with your exec URL
-    const LIFF_ID = "2007890960-Yjq6VQWo"; // <- replace with your LIFF ID
+    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxdYfuRnpEVGahWXGLFsj4kfVXJ_CLQBOwwnK0HWBEHWqm7gBzHmhaCd__gL9MeUuQf/exec";
+    const LIFF_ID = "2007890960-Yjq6VQWo";
+
+    let currentUser = { userId: null, displayName: null };
 
     async function main() {
       try {
@@ -39,39 +43,68 @@
         }
 
         const profile = await liff.getProfile();
-        const userId = profile.userId;
-        const displayName = profile.displayName || "";
+        currentUser.userId = profile.userId;
+        currentUser.displayName = profile.displayName || "";
 
-        // POST using text/plain to avoid preflight on Apps Script
+        await fetchAndRender();
+
+        // Bind coffee purchase button
+        document.getElementById("coffeeBtn").onclick = async () => {
+          await recordCoffeePurchase();
+        };
+
+      } catch (err) {
+        showError(err.message || String(err));
+      }
+    }
+
+    async function fetchAndRender() {
+      try {
         const res = await fetch(BACKEND_URL, {
           method: "POST",
-          headers: {
-            "Content-Type": "text/plain;charset=utf-8"
-          },
-          body: JSON.stringify({ userId, name: displayName })
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ userId: currentUser.userId, name: currentUser.displayName })
         });
 
         if (!res.ok) throw new Error("Network response not ok: " + res.status);
 
         const data = await res.json();
+        if (data.error) { showError(data.error); return; }
 
-        if (data.error) {
-          showError(data.error);
-          return;
-        }
-
-        // Populate UI
-        document.getElementById("welcome").textContent = `Welcome, ${data.name || displayName || data.userId}`;
-        document.getElementById("points").textContent = data.points ?? 0;
-        document.getElementById("tier").textContent = data.tier || "Bronze";
-        document.getElementById("badges").textContent = data.badges || "(none)";
-
-        document.getElementById("loading").style.display = "none";
-        document.getElementById("card").style.display = "block";
-
+        renderUserData(data);
       } catch (err) {
         showError(err.message || String(err));
       }
+    }
+
+    async function recordCoffeePurchase() {
+      try {
+        const res = await fetch(BACKEND_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ userId: currentUser.userId, name: currentUser.displayName, action: "coffee_purchase" })
+        });
+
+        if (!res.ok) throw new Error("Network response not ok: " + res.status);
+
+        const data = await res.json();
+        if (data.error) { showError(data.error); return; }
+
+        renderUserData(data);
+      } catch (err) {
+        showError(err.message || String(err));
+      }
+    }
+
+    function renderUserData(data) {
+      document.getElementById("welcome").textContent = `Welcome, ${data.name || currentUser.displayName || data.userId}`;
+      document.getElementById("points").textContent = data.points ?? 0;
+      document.getElementById("tier").textContent = data.tier || "Bronze";
+      document.getElementById("badges").textContent = data.badges || "(none)";
+
+      document.getElementById("loading").style.display = "none";
+      document.getElementById("card").style.display = "block";
+      document.getElementById("error").textContent = "";
     }
 
     function showError(msg) {
@@ -85,8 +118,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
