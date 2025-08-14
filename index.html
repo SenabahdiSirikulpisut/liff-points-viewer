@@ -5,40 +5,30 @@
   <title>7-Eleven Membership</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-
   <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      padding: 20px;
-      max-width: 500px;
-      margin: auto;
-      background: #f7f9fc;
-      color: #333;
+    body { 
+      font-family: 'Segoe UI', Arial, sans-serif; 
+      padding:20px; 
+      max-width:600px; 
+      margin:auto; 
+      background:#f5f5f5; 
     }
-
-    h1 {
-      text-align: center;
-      font-size: 1.8rem;
-      font-weight: 600;
-      color: #0078FF;
-      margin-bottom: 20px;
+    h1 { 
+      text-align:center; 
+      color:#333; 
+      margin-bottom:30px; 
+      font-weight:600;
     }
+    #loading { color: #777; text-align:center; margin-top:50px; }
+    #error { color: red; text-align:center; margin-top:20px; }
 
-    #loading {
-      color: #777;
-      text-align: center;
-      margin-top: 50px;
-      font-size: 1rem;
-    }
-
-    #error {
-      color: #e74c3c;
-      text-align: center;
-      margin-top: 20px;
+    /* Member name above the card */
+    .member-greeting {
+      font-size: 20px;
       font-weight: 500;
+      text-align: center;
+      margin-bottom: 10px;
+      color: #444;
     }
 
     /* Member card */
@@ -46,18 +36,17 @@
       background: linear-gradient(135deg, #cd7f32, #ffa500); /* Bronze default */
       color: white;
       border-radius: 16px;
-      padding: 24px;
-      text-align: center;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+      padding: 20px;
+      width: 100%;
+      height: 180px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
       position: relative;
-      margin-top: 20px;
-      transition: transform 0.2s ease-in-out;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
 
-    .member-card:hover {
-      transform: translateY(-3px);
-    }
-
+    /* Tier badge top-right */
     .member-card .tier-badge {
       position: absolute;
       top: 12px;
@@ -67,51 +56,42 @@
       padding: 4px 12px;
       border-radius: 12px;
       font-weight: bold;
-      font-size: 14px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      font-size:14px;
     }
 
-    .member-card h2 {
-      margin: 0;
-      font-size: 1.5rem;
+    /* Points big in the middle */
+    .member-card .points {
+      font-size: 28px;
       font-weight: 600;
     }
 
-    .member-card p {
-      margin: 6px 0;
-      font-size: 1.1rem;
+    /* Customer name bottom-left */
+    .member-card .member-name {
+      font-size: 16px;
+      font-weight: 400;
+      opacity: 0.9;
+      align-self: flex-start;
     }
 
-    /* Badges */
-    #cardBadges {
-      margin-top: 12px;
-    }
-
-    #cardBadges img {
-      width: 42px;
-      margin: 4px;
-      border-radius: 50%;
-      border: 2px solid rgba(255,255,255,0.6);
-      background: rgba(255,255,255,0.2);
-    }
+    /* Badges below card */
+    #cardBadges { margin-top:12px; text-align:center; }
+    #cardBadges img { width:40px; margin:4px; }
 
     /* Button */
-    button {
-      padding: 10px 16px;
-      border: none;
-      background: #0078FF;
-      color: white;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 16px;
-      font-size: 1rem;
-      font-weight: 500;
-      transition: background 0.2s ease-in-out;
+    button { 
+      padding: 10px 16px; 
+      border:none; 
+      background:#0078FF; 
+      color:white; 
+      border-radius:6px; 
+      cursor:pointer; 
+      margin-top:16px; 
+      font-size:16px; 
+      display:block;
+      margin-left:auto;
+      margin-right:auto;
     }
-
-    button:hover {
-      background: #005BBB;
-    }
+    button:hover { background:#005BBB; }
   </style>
 </head>
 <body>
@@ -119,17 +99,20 @@
   <div id="loading">Loading...</div>
   <div id="error"></div>
 
+  <div class="member-greeting" id="memberGreeting" style="display:none;"></div>
+
   <div id="card" class="member-card" style="display:none;">
     <div class="tier-badge" id="tierBadge">Bronze</div>
-    <h2 id="cardName">Welcome</h2>
-    <p>Points: <span id="cardPoints">0</span></p>
-    <div id="cardBadges"></div>
-    <button id="coffeeBtn">☕ Record Coffee Purchase</button>
+    <div class="points">Points: <span id="cardPoints">0</span></div>
+    <div class="member-name" id="cardName">Member Name</div>
   </div>
 
+  <div id="cardBadges"></div>
+  <button id="coffeeBtn" style="display:none;">Record Coffee Purchase</button>
+
   <script>
-    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxGc1cKNxf0UDnOMBBRJcwxfka6iGY_SiJEkaJAeCHhARzjgDNcU1BVt4mvur-NVGvj/exec";
-    const LIFF_ID = "2007890960-Yjq6VQWo";
+    const BACKEND_URL = "YOUR_BACKEND_URL";
+    const LIFF_ID = "YOUR_LIFF_ID";
 
     let currentUser = { userId: null, displayName: null };
 
@@ -191,18 +174,24 @@
     }
 
     function renderUserData(data) {
-      document.getElementById("cardName").textContent = `Welcome, ${data.name || currentUser.displayName || data.userId}`;
+      const nameText = data.name || currentUser.displayName || data.userId;
+      document.getElementById("memberGreeting").textContent = `Welcome, ${nameText}`;
+      document.getElementById("memberGreeting").style.display = "block";
+
+      document.getElementById("cardName").textContent = nameText;
       animatePoints(data.points ?? 0);
       document.getElementById("tierBadge").textContent = data.tier || "Bronze";
       setCardTierColor(data.tier);
 
+      // Render badges
       const badges = (data.badges || "").split(",").map(b => b.trim()).filter(Boolean);
       document.getElementById("cardBadges").innerHTML = badges.map(b =>
         `<img src="https://via.placeholder.com/40?text=${encodeURIComponent(b)}" alt="${b}">`
       ).join("");
 
       document.getElementById("loading").style.display = "none";
-      document.getElementById("card").style.display = "block";
+      document.getElementById("card").style.display = "flex";
+      document.getElementById("coffeeBtn").style.display = "block";
       document.getElementById("error").textContent = "";
     }
 
@@ -235,4 +224,5 @@
   </script>
 </body>
 </html>
+
 
