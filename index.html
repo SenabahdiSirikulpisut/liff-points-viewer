@@ -16,7 +16,6 @@
     #loading { color: #777; text-align: center; margin-top: 50px; }
     #error { color: red; text-align: center; margin-top: 20px; }
 
-    /* Welcome message */
     #welcomeMsg {
       font-size: 20px;
       font-weight: 700;
@@ -24,7 +23,6 @@
       text-align: left;
     }
 
-    /* Member card */
     .member-card {
       border-radius: 16px;
       padding: 16px;
@@ -32,7 +30,7 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
       position: relative;
       margin-bottom: 16px;
-      height: 140px;
+      height: 180px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -41,7 +39,6 @@
       overflow: hidden;
     }
 
-    /* Overlay for readability */
     .member-card::before {
       content: "";
       position: absolute;
@@ -53,10 +50,9 @@
     .member-card * {
       position: relative;
       z-index: 1;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.5); /* engraved effect */
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
     }
 
-    /* Tier badge */
     .tier-badge {
       position: absolute;
       top: 12px;
@@ -70,7 +66,6 @@
       text-shadow: none;
     }
 
-    /* Member name bottom left */
     .member-name {
       font-size: 18px;
       font-weight: 600;
@@ -78,17 +73,19 @@
       margin-left: 8px;
     }
 
-    /* Points & progress */
     .points {
       font-size: 16px;
     }
+
     .progress-container {
+      position: relative;
       width: 100%;
       height: 12px;
       background: rgba(255,255,255,0.3);
       border-radius: 6px;
       margin-top: 4px;
     }
+
     .progress-bar {
       height: 12px;
       border-radius: 6px;
@@ -97,11 +94,27 @@
       transition: width 1s ease;
     }
 
-    /* Badges */
+    .progress-node {
+      position: absolute;
+      top: -4px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: white;
+      border: 2px solid #FFD700;
+      transform: translateX(-50%);
+    }
+
+    .progress-text {
+      font-size: 12px;
+      color: white;
+      margin-top: 4px;
+      text-align: center;
+    }
+
     #cardBadges { margin-top:8px; }
     #cardBadges span { font-size: 24px; margin: 2px; }
 
-    /* Coffee button */
     button { 
       padding: 10px 16px; border:none; background:#0078FF; color:white; border-radius:6px; 
       cursor:pointer; margin-top:16px; font-size:16px; width:100%;
@@ -120,9 +133,7 @@
   <div id="card" class="member-card" style="display:none;">
     <div class="tier-badge" id="tierBadge">Silver</div>
     <div class="points">Points: <span id="cardPoints">0</span></div>
-    <div class="progress-container">
-      <div class="progress-bar" id="tierProgress"></div>
-    </div>
+    <div class="progress-container" id="progressContainer"></div>
     <div id="cardBadges"></div>
     <div class="member-name" id="cardName">Member Name</div>
   </div>
@@ -201,32 +212,27 @@
     }
 
     function renderUserData(data) {
+      const tier = data.tier || "Silver";
+      const points = data.points ?? 0;
+
       document.getElementById("welcomeMsg").textContent = `Welcome, ${data.name || currentUser.displayName || data.userId}`;
       document.getElementById("welcomeMsg").style.display = "block";
 
       document.getElementById("cardName").textContent = data.name || currentUser.displayName || data.userId;
 
       // Animate points
-      animatePoints(data.points ?? 0);
+      animatePoints(points);
 
       // Tier badge and card image
-      const tier = data.tier || "Silver";
       document.getElementById("tierBadge").textContent = tier;
       setCardTierImage(tier);
 
       // Progress bar
-      const points = data.points ?? 0;
-      let progressPercent = 0;
-      if (tier === "Silver") progressPercent = Math.min((points / 50) * 100, 100);
-      else if (tier === "Gold") progressPercent = Math.min(((points - 50) / 50) * 100, 100);
-      else if (tier === "Black") progressPercent = 100;
-      document.getElementById("tierProgress").style.width = progressPercent + "%";
+      renderProgress(points, tier);
 
       // Emoji badges
       const badges = (data.badges || "").split(",").map(b => b.trim()).filter(Boolean);
-      document.getElementById("cardBadges").innerHTML = badges.map(b =>
-        `<span>⭐</span>` // placeholder emoji
-      ).join("");
+      document.getElementById("cardBadges").innerHTML = badges.map(b => `<span>⭐</span>`).join("");
 
       document.getElementById("loading").style.display = "none";
       document.getElementById("card").style.display = "flex";
@@ -246,29 +252,41 @@
     }
 
     function setCardTierImage(tier) {
-  const card = document.getElementById("card");
-  const progressBar = document.getElementById("tierProgress");
-
-  const tierData = {
-    "Silver": {
-      img: "https://github.com/SenabahdiSirikulpisut/membership_card/blob/main/10.png?raw=true",
-      progressColor: "#C0C0C0"
-    },
-    "Gold": {
-      img: "https://github.com/SenabahdiSirikulpisut/membership_card/blob/main/11.png?raw=true",
-      progressColor: "#FFD700"
-    },
-    "Black": {
-      img: "https://github.com/SenabahdiSirikulpisut/membership_card/blob/main/12.png?raw=true",
-      progressColor: "#CCCCCC"
+      const card = document.getElementById("card");
+      card.style.backgroundImage = `url('${tierImages[tier] || tierImages["Silver"]}')`;
     }
-  };
 
-  const data = tierData[tier] || tierData["Silver"];
-  card.style.backgroundImage = `url('${data.img}')`;
-  progressBar.style.background = data.progressColor;
-}
+    function renderProgress(points, tier) {
+      const container = document.getElementById("progressContainer");
+      container.innerHTML = `
+        <div class="progress-bar" id="tierProgress"></div>
+        <div class="progress-node" style="left:0%;"></div>
+        <div class="progress-node" style="left:50%;"></div>
+        <div class="progress-node" style="left:100%;"></div>
+      `;
+      const progressBar = document.getElementById("tierProgress");
 
+      let progressPercent = 0;
+      let nextTierPoints = 0;
+      if (points < 50) {
+        progressPercent = (points / 50) * 50; 
+        nextTierPoints = 50 - points;
+      } else if (points < 100) {
+        progressPercent = 50 + ((points - 50) / 50) * 50; 
+        nextTierPoints = 100 - points;
+      } else {
+        progressPercent = 100;
+        nextTierPoints = 0;
+      }
+      progressBar.style.width = progressPercent + "%";
+
+      const existingText = document.querySelector('.progress-text');
+      if(existingText) existingText.remove();
+      const textEl = document.createElement('div');
+      textEl.className = 'progress-text';
+      textEl.textContent = nextTierPoints > 0 ? `${nextTierPoints} points to next tier` : 'Max tier reached';
+      container.appendChild(textEl);
+    }
 
     function showError(msg) {
       document.getElementById("loading").style.display = "none";
@@ -282,4 +300,3 @@
   </script>
 </body>
 </html>
-
