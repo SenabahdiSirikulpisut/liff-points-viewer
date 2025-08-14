@@ -246,9 +246,29 @@
     }
 
     function setCardTierImage(tier) {
-      const card = document.getElementById("card");
-      card.style.backgroundImage = `url('${tierImages[tier] || tierImages["Silver"]}')`;
+  const card = document.getElementById("card");
+  const progressBar = document.getElementById("tierProgress");
+
+  const tierData = {
+    "Silver": {
+      img: "https://github.com/SenabahdiSirikulpisut/membership_card/blob/main/10.png?raw=true",
+      progressColor: "#C0C0C0"
+    },
+    "Gold": {
+      img: "https://github.com/SenabahdiSirikulpisut/membership_card/blob/main/11.png?raw=true",
+      progressColor: "#FFD700"
+    },
+    "Black": {
+      img: "https://github.com/SenabahdiSirikulpisut/membership_card/blob/main/12.png?raw=true",
+      progressColor: "#CCCCCC"
     }
+  };
+
+  const data = tierData[tier] || tierData["Silver"];
+  card.style.backgroundImage = `url('${data.img}')`;
+  progressBar.style.background = data.progressColor;
+}
+
 
     function showError(msg) {
       document.getElementById("loading").style.display = "none";
@@ -262,3 +282,4 @@
   </script>
 </body>
 </html>
+
