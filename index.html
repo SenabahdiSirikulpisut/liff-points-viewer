@@ -133,23 +133,33 @@
     }
     button:hover { background:#005BBB; }
 
-    /* Luxurious metallic textures using CSS */
+    /* Luxurious metallic textures using SVG overlay */
     .tier-silver {
-      background: linear-gradient(135deg, #d4d4d4 0%, #b0b0b0 25%, #d4d4d4 50%, #b0b0b0 75%, #d4d4d4 100%);
-      background-size: 60px 60px;
+      background-color: #c0c0c0;
+      background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20.5V18H0v-2h20v-2H0v-2h20v-2H0V8h20V6H0V4h20V2H0V0h22v20h2V0h2v20h2V0h2v20h2V0h2v20h2V0h2v20h2v2H20v-1.5zM0 20h2v20H0V20zm4 0h2v20H4V20zm4 0h2v20H8V20zm4 0h2v20h-2V20zm4 0h2v20h-2V20zm4 4h20v2H20v-2zm0 4h20v2H20v-2zm0 4h20v2H20v-2zm0 4h20v2H20v-2z' fill='%23ffffff' fill-opacity='0.2' fill-rule='evenodd'/%3E%3C/svg%3E");
+      background-size: 40px 40px;
+      background-repeat: repeat;
+      background-blend-mode: overlay;
     }
 
     .tier-gold {
-      background: linear-gradient(135deg, #FFD700 0%, #E6C200 25%, #FFD700 50%, #E6C200 75%, #FFD700 100%);
-      background-size: 60px 60px;
+      background-color: #d0c636;
+      background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20.5V18H0v-2h20v-2H0v-2h20v-2H0V8h20V6H0V4h20V2H0V0h22v20h2V0h2v20h2V0h2v20h2V0h2v20h2V0h2v20h2v2H20v-1.5zM0 20h2v20H0V20zm4 0h2v20H4V20zm4 0h2v20H8V20zm4 0h2v20h-2V20zm4 0h2v20h-2V20zm4 4h20v2H20v-2zm0 4h20v2H20v-2zm0 4h20v2H20v-2zm0 4h20v2H20v-2z' fill='%23feffe6' fill-opacity='0.4' fill-rule='evenodd'/%3E%3C/svg%3E");
+      background-size: 40px 40px;
+      background-repeat: repeat;
+      background-blend-mode: overlay;
       box-shadow: 0 6px 20px rgba(255,215,0,0.5);
     }
 
     .tier-black {
-      background: linear-gradient(135deg, #1C1C1C 0%, #333333 25%, #1C1C1C 50%, #333333 75%, #1C1C1C 100%);
-      background-size: 60px 60px;
+      background-color: #1C1C1C;
+      background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20.5V18H0v-2h20v-2H0v-2h20v-2H0V8h20V6H0V4h20V2H0V0h22v20h2V0h2v20h2V0h2v20h2V0h2v20h2V0h2v20h2v2H20v-1.5zM0 20h2v20H0V20zm4 0h2v20H4V20zm4 0h2v20H8V20zm4 0h2v20h-2V20zm4 0h2v20h-2V20zm4 4h20v2H20v-2zm0 4h20v2H20v-2zm0 4h20v2H20v-2zm0 4h20v2H20v-2z' fill='%23ffffff' fill-opacity='0.15' fill-rule='evenodd'/%3E%3C/svg%3E");
+      background-size: 40px 40px;
+      background-repeat: repeat;
+      background-blend-mode: overlay;
       box-shadow: 0 6px 20px rgba(0,0,0,0.6);
     }
+
   </style>
 </head>
 <body>
@@ -184,12 +194,7 @@
     const LIFF_ID = "2007890960-Yjq6VQWo";
 
     let currentUser = { userId: null, displayName: null };
-
-    const tierClasses = {
-      "Silver": "tier-silver",
-      "Gold": "tier-gold",
-      "Black": "tier-black"
-    };
+    const tierClasses = { "Silver":"tier-silver", "Gold":"tier-gold", "Black":"tier-black" };
 
     async function main() {
       try {
@@ -263,7 +268,6 @@
 
       const card = document.getElementById("card");
       card.className = "member-card " + (tierClasses[tier] || tierClasses["Silver"]);
-
       document.getElementById("tierBadge").textContent = tier;
 
       renderProgress(points);
