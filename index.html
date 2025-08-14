@@ -36,7 +36,7 @@
       color: white;
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
       position: relative;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
       height: 160px;
       display: flex;
       flex-direction: column;
@@ -99,8 +99,9 @@
       color:white;
       border-radius:6px;
       cursor:pointer;
-      margin-top:16px;
+      margin-top:8px;
       font-size:16px;
+      width:100%;
     }
     button:hover { background:#005BBB; }
   </style>
@@ -120,9 +121,11 @@
     </div>
 
     <div id="cardBadges"></div>
-    <button id="coffeeBtn">Record Coffee Purchase</button>
     <div class="member-name" id="cardName">Member</div>
   </div>
+
+  <!-- Move button below the card -->
+  <button id="coffeeBtn" style="display:none;">Record Coffee Purchase</button>
 
   <script>
     const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxdYfuRnpEVGahWXGLFsj4kfVXJ_CLQBOwwnK0HWBEHWqm7gBzHmhaCd__gL9MeUuQf/exec";
@@ -143,7 +146,9 @@
 
         await fetchAndRender();
 
-        document.getElementById("coffeeBtn").onclick = async () => {
+        const coffeeBtn = document.getElementById("coffeeBtn");
+        coffeeBtn.style.display = "block";
+        coffeeBtn.onclick = async () => {
           const password = prompt("Enter password to record coffee purchase:");
           if (!password) return;
           await recordCoffeePurchase(password);
@@ -208,7 +213,6 @@
 
       document.getElementById("loading").style.display = "none";
       document.getElementById("card").style.display = "block";
-      document.getElementById("error").textContent = "";
     }
 
     function setCardTierColor(tier) {
@@ -227,7 +231,6 @@
       else if(points < 100) targetPercent = ((points - 50)/50)*100;
       else targetPercent = 100;
 
-      // Change progress bar color based on tier
       const tier = document.getElementById("tierBadge").textContent;
       if(tier === "Bronze") progressEl.style.background = "#cd7f32";
       else if(tier === "Silver") progressEl.style.background = "#c0c0c0";
@@ -253,3 +256,5 @@
   </script>
 </body>
 </html>
+
+
