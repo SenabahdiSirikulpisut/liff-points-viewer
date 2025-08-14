@@ -93,7 +93,6 @@
     .progress-bar {
       height: 12px;
       border-radius: 6px;
-      background: #FFD700;
       width: 0%;
       transition: width 1s ease;
     }
@@ -119,7 +118,7 @@
   <div id="welcomeMsg" style="display:none;"></div>
 
   <div id="card" class="member-card" style="display:none;">
-    <div class="tier-badge" id="tierBadge">Bronze</div>
+    <div class="tier-badge" id="tierBadge">Silver</div>
     <div class="points">Points: <span id="cardPoints">0</span></div>
     <div class="progress-container">
       <div class="progress-bar" id="tierProgress"></div>
@@ -205,15 +204,15 @@
       animatePoints(data.points ?? 0);
 
       // Tier badge and card color
-      document.getElementById("tierBadge").textContent = data.tier || "Bronze";
+      document.getElementById("tierBadge").textContent = data.tier || "Silver";
       setCardTierColor(data.tier);
 
       // Progress bar
       const points = data.points ?? 0;
       let progressPercent = 0;
-      if (data.tier === "Bronze") progressPercent = Math.min((points / 50) * 100, 100);
-      else if (data.tier === "Silver") progressPercent = Math.min(((points - 50) / 50) * 100, 100);
-      else progressPercent = 100;
+      if (data.tier === "Silver") progressPercent = Math.min((points / 50) * 100, 100);
+      else if (data.tier === "Gold") progressPercent = Math.min(((points - 50) / 50) * 100, 100);
+      else if (data.tier === "Black") progressPercent = 100;
       document.getElementById("tierProgress").style.width = progressPercent + "%";
 
       // Emoji badges
@@ -241,9 +240,9 @@
 
     function setCardTierColor(tier) {
       const card = document.getElementById("card");
-      if(tier === "Bronze") card.style.background = "linear-gradient(135deg, #cd7f32, #ffa500)";
-      else if(tier === "Silver") card.style.background = "linear-gradient(135deg, #c0c0c0, #e0e0e0)";
+      if(tier === "Silver") card.style.background = "linear-gradient(135deg, #c0c0c0, #e0e0e0)";
       else if(tier === "Gold") card.style.background = "linear-gradient(135deg, #ffd700, #ffea00)";
+      else if(tier === "Black") card.style.background = "linear-gradient(135deg, #1c1c1c, #333333)";
     }
 
     function showError(msg) {
@@ -258,4 +257,3 @@
   </script>
 </body>
 </html>
-
