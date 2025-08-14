@@ -130,7 +130,7 @@
   <button id="coffeeBtn" style="display:none;">Record Coffee Purchase</button>
 
   <script>
-    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxGc1cKNxf0UDnOMBBRJcwxfka6iGY_SiJEkaJAeCHhARzjgDNcU1BVt4mvur-NVGvj/exec";
+    const BACKEND_URL = "https://script.google.com/macros/s/AKfycby9Lo2yUjXcLdMJdchdEXDZPY1lFP71pI6P9feIDwghTuoHjTklU-Z3wCrxvZ9uTsqg/exec";
     const LIFF_ID = "2007890960-Yjq6VQWo";
 
     let currentUser = { userId: null, displayName: null };
@@ -207,7 +207,7 @@
       document.getElementById("tierBadge").textContent = data.tier || "Silver";
       setCardTierColor(data.tier);
 
-      // Progress bar
+      // Progress bar logic
       const points = data.points ?? 0;
       let progressPercent = 0;
       if (data.tier === "Silver") progressPercent = Math.min((points / 50) * 100, 100);
@@ -217,9 +217,7 @@
 
       // Emoji badges
       const badges = (data.badges || "").split(",").map(b => b.trim()).filter(Boolean);
-      document.getElementById("cardBadges").innerHTML = badges.map(b =>
-        `<span>⭐</span>` // using a star emoji for placeholder
-      ).join("");
+      document.getElementById("cardBadges").innerHTML = badges.map(b => `<span>⭐</span>`).join("");
 
       document.getElementById("loading").style.display = "none";
       document.getElementById("card").style.display = "flex";
