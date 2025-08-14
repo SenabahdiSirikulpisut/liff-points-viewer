@@ -6,86 +6,45 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; padding:20px; max-width:600px; margin:auto; background:#f5f5f5; }
+    body { font-family: Arial, sans-serif; padding:20px; max-width:600px; margin:auto; background:#f0f0f0; }
     #loading { color: #777; text-align:center; margin-top:50px; }
     #error { color: red; text-align:center; margin-top:20px; }
 
-    /* Member Card Container */
+    /* Member card */
     .member-card {
-      position: relative;
-      width: 100%;
-      max-width: 350px;
-      margin: 40px auto;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+      background: linear-gradient(135deg, #cd7f32, #ffa500); /* Bronze default */
       color: white;
-      background-size: cover;
-      background-position: center;
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      position: relative;
+      margin-top:20px;
     }
-
-    /* Gloss overlay */
-    .member-card::before {
-      content: "";
+    .member-card .tier-badge {
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(120deg, rgba(255,255,255,0.3), rgba(255,255,255,0) 50%);
-      pointer-events: none;
-    }
-
-    /* Card header with logo & tier */
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 16px;
-    }
-    .card-header img {
-      height: 40px;
-    }
-    .tier-badge {
-      background: rgba(255,255,255,0.9);
+      top: 12px;
+      right: 12px;
+      background: rgba(255,255,255,0.8);
       color: #333;
-      padding: 4px 10px;
+      padding: 4px 12px;
       border-radius: 12px;
       font-weight: bold;
-      font-size: 14px;
+      font-size:14px;
     }
+    .member-card h2 { margin: 0; font-size: 24px; }
+    .member-card p { margin: 6px 0; font-size: 18px; }
 
-    /* Card content */
-    .card-content {
-      padding: 20px;
-    }
-    .card-content h2 {
-      margin: 0;
-      font-size: 22px;
-    }
-    .card-content p {
-      font-size: 18px;
-      margin: 6px 0;
-    }
-
-    /* Badges row */
+    /* Badges */
     #cardBadges { margin-top:12px; }
     #cardBadges img { width:40px; margin:4px; }
 
     /* Button */
     button { 
-      display: block;
-      width: calc(100% - 40px);
-      margin: 20px auto;
-      padding: 10px;
-      border: none;
-      background: #0078FF;
-      color: white;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 16px;
+      padding: 10px 16px; border:none; background:#0078FF; color:white; border-radius:6px; 
+      cursor:pointer; margin-top:16px; font-size:16px; 
     }
-    button:hover { background: #005BBB; }
+    button:hover { background:#005BBB; }
   </style>
 </head>
 <body>
@@ -94,18 +53,12 @@
   <div id="error"></div>
 
   <div id="card" class="member-card" style="display:none;">
-    <div class="card-header">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/7-eleven-logo.svg" alt="7-Eleven">
-      <div class="tier-badge" id="tierBadge">Bronze</div>
-    </div>
-    <div class="card-content">
-      <h2 id="cardName">Welcome</h2>
-      <p>Points: <span id="cardPoints">0</span></p>
-      <div id="cardBadges"></div>
-    </div>
+    <div class="tier-badge" id="tierBadge">Bronze</div>
+    <h2 id="cardName">Welcome</h2>
+    <p>Points: <span id="cardPoints">0</span></p>
+    <div id="cardBadges"></div>
+    <button id="coffeeBtn">Record Coffee Purchase</button>
   </div>
-
-  <button id="coffeeBtn" style="display:none;">Record Coffee Purchase</button>
 
   <script>
     const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxGc1cKNxf0UDnOMBBRJcwxfka6iGY_SiJEkaJAeCHhARzjgDNcU1BVt4mvur-NVGvj/exec";
@@ -176,6 +129,7 @@
       document.getElementById("tierBadge").textContent = data.tier || "Bronze";
       setCardTierColor(data.tier);
 
+      // Render badges
       const badges = (data.badges || "").split(",").map(b => b.trim()).filter(Boolean);
       document.getElementById("cardBadges").innerHTML = badges.map(b =>
         `<img src="https://via.placeholder.com/40?text=${encodeURIComponent(b)}" alt="${b}">`
@@ -183,15 +137,14 @@
 
       document.getElementById("loading").style.display = "none";
       document.getElementById("card").style.display = "block";
-      document.getElementById("coffeeBtn").style.display = "block";
       document.getElementById("error").textContent = "";
     }
 
     function setCardTierColor(tier) {
       const card = document.getElementById("card");
-      if(tier === "Bronze") card.style.background = "linear-gradient(135deg, #cd7f32, #d99058)";
+      if(tier === "Bronze") card.style.background = "linear-gradient(135deg, #cd7f32, #ffa500)";
       else if(tier === "Silver") card.style.background = "linear-gradient(135deg, #c0c0c0, #e0e0e0)";
-      else if(tier === "Gold") card.style.background = "linear-gradient(135deg, #ffd700, #ffcc00)";
+      else if(tier === "Gold") card.style.background = "linear-gradient(135deg, #ffd700, #ffea00)";
     }
 
     function animatePoints(newPoints) {
@@ -208,7 +161,6 @@
     function showError(msg) {
       document.getElementById("loading").style.display = "none";
       document.getElementById("card").style.display = "none";
-      document.getElementById("coffeeBtn").style.display = "none";
       document.getElementById("error").textContent = "Error: " + msg;
       console.error(msg);
     }
@@ -217,5 +169,6 @@
   </script>
 </body>
 </html>
+
 
 
