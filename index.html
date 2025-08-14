@@ -36,7 +36,6 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      background-image: url('https://via.placeholder.com/600x140'); /* placeholder image */
       background-size: cover;
       background-position: center;
       overflow: hidden;
@@ -93,6 +92,7 @@
     .progress-bar {
       height: 12px;
       border-radius: 6px;
+      background: #FFD700;
       width: 0%;
       transition: width 1s ease;
     }
@@ -130,8 +130,14 @@
   <button id="coffeeBtn" style="display:none;">Record Coffee Purchase</button>
 
   <script>
-    const BACKEND_URL = "https://script.google.com/macros/s/AKfycby9Lo2yUjXcLdMJdchdEXDZPY1lFP71pI6P9feIDwghTuoHjTklU-Z3wCrxvZ9uTsqg/exec";
+    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxGc1cKNxf0UDnOMBBRJcwxfka6iGY_SiJEkaJAeCHhARzjgDNcU1BVt4mvur-NVGvj/exec";
     const LIFF_ID = "2007890960-Yjq6VQWo";
+
+    const tierImages = {
+      "Silver": "https://github.com/SenabahdiSirikulpisut/membership_card/blob/main/10.png?raw=true",
+      "Gold": "https://github.com/SenabahdiSirikulpisut/membership_card/blob/main/11.png?raw=true",
+      "Black": "https://github.com/SenabahdiSirikulpisut/membership_card/blob/main/12.png?raw=true"
+    };
 
     let currentUser = { userId: null, displayName: null };
 
@@ -203,21 +209,24 @@
       // Animate points
       animatePoints(data.points ?? 0);
 
-      // Tier badge and card color
-      document.getElementById("tierBadge").textContent = data.tier || "Silver";
-      setCardTierColor(data.tier);
+      // Tier badge and card image
+      const tier = data.tier || "Silver";
+      document.getElementById("tierBadge").textContent = tier;
+      setCardTierImage(tier);
 
-      // Progress bar logic
+      // Progress bar
       const points = data.points ?? 0;
       let progressPercent = 0;
-      if (data.tier === "Silver") progressPercent = Math.min((points / 50) * 100, 100);
-      else if (data.tier === "Gold") progressPercent = Math.min(((points - 50) / 50) * 100, 100);
-      else if (data.tier === "Black") progressPercent = 100;
+      if (tier === "Silver") progressPercent = Math.min((points / 50) * 100, 100);
+      else if (tier === "Gold") progressPercent = Math.min(((points - 50) / 50) * 100, 100);
+      else if (tier === "Black") progressPercent = 100;
       document.getElementById("tierProgress").style.width = progressPercent + "%";
 
       // Emoji badges
       const badges = (data.badges || "").split(",").map(b => b.trim()).filter(Boolean);
-      document.getElementById("cardBadges").innerHTML = badges.map(b => `<span>⭐</span>`).join("");
+      document.getElementById("cardBadges").innerHTML = badges.map(b =>
+        `<span>⭐</span>` // placeholder emoji
+      ).join("");
 
       document.getElementById("loading").style.display = "none";
       document.getElementById("card").style.display = "flex";
@@ -236,11 +245,9 @@
       }, 20);
     }
 
-    function setCardTierColor(tier) {
+    function setCardTierImage(tier) {
       const card = document.getElementById("card");
-      if(tier === "Silver") card.style.background = "linear-gradient(135deg, #c0c0c0, #e0e0e0)";
-      else if(tier === "Gold") card.style.background = "linear-gradient(135deg, #ffd700, #ffea00)";
-      else if(tier === "Black") card.style.background = "linear-gradient(135deg, #1c1c1c, #333333)";
+      card.style.backgroundImage = `url('${tierImages[tier] || tierImages["Silver"]}')`;
     }
 
     function showError(msg) {
