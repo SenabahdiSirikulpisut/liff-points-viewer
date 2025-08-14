@@ -134,24 +134,38 @@
     button:hover { background:#005BBB; }
 
     /* Updated backgrounds using your Transparent Textures */
-    .tier-gold {
-      background-color: #fdd700;
-      background-image: url("https://www.transparenttextures.com/patterns/arches.png");
-      background-repeat: repeat;
-    }
+   /* Silver Tier */
+.tier-silver {
+  background-color: #e0e0e0; /* slightly darker than #ebebeb for consistency */
+  background-image: url("https://www.transparenttextures.com/patterns/arches.png");
+  background-size: auto;
+  background-repeat: repeat;
+  background-blend-mode: overlay;
+  color: #333; /* more visible on mobile bright screens */
+}
 
-    .tier-silver {
-      background-color: #ebebeb;
-      background-image: url("https://www.transparenttextures.com/patterns/arches.png");
-      background-repeat: repeat;
-      color: #333;
-    }
+/* Gold Tier */
+.tier-gold {
+  background-color: #fdd900; /* slightly darker than #fdd700 */
+  background-image: url("https://www.transparenttextures.com/patterns/arches.png");
+  background-size: auto;
+  background-repeat: repeat;
+  background-blend-mode: overlay;
+  color: #222; /* darker text for readability */
+  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5);
+}
 
-    .tier-black {
-      background-color: #000000;
-      background-image: url("https://www.transparenttextures.com/patterns/french-stucco.png");
-      background-repeat: repeat;
-    }
+/* Black Tier */
+.tier-black {
+  background-color: #0a0a0a; /* slightly lighter than pure black #000000 */
+  background-image: url("https://www.transparenttextures.com/patterns/french-stucco.png");
+  background-size: auto;
+  background-repeat: repeat;
+  background-blend-mode: overlay;
+  color: #fff; /* maintain contrast on mobile OLED screens */
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+}
+
 
   </style>
 </head>
@@ -325,5 +339,6 @@
   </script>
 </body>
 </html>
+
 
 
