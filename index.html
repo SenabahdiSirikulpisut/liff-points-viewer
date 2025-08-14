@@ -1,99 +1,35 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
   <title>7-Eleven Membership</title>
-  <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      margin: 0;
-      background: #f5f5f5;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
-    }
-
-    .membership-card {
-      background: linear-gradient(135deg, #ff6f00, #ff9800);
-      color: white;
-      padding: 20px;
-      border-radius: 15px;
-      text-align: center;
-      width: 300px;
-      margin: 20px 0;
-      box-shadow: 0px 4px 20px rgba(0,0,0,0.3);
-    }
-
-    .membership-card img {
-      width: 80px;
-      margin-bottom: 10px;
-    }
-
-    .tier {
-      font-weight: 500;
-      opacity: 0.9;
-    }
-
-    .points {
-      font-size: 2rem;
-      font-weight: bold;
-      margin: 10px 0;
-    }
-
-    .progress-container {
-      width: 100%;
-      background: rgba(255,255,255,0.3);
-      border-radius: 8px;
-      overflow: hidden;
-      margin-top: 10px;
-    }
-
-    .progress-bar {
-      height: 10px;
-      background: gold;
-      width: 0%;
-    }
-
-    button {
-      background: #ff9800;
-      color: white;
-      padding: 12px 20px;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-      margin-top: 10px;
-      width: 100%;
-    }
-
-    #error {
-      color: red;
-      margin-top: 10px;
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </head>
 <body>
-  <div class="membership-card" id="card" style="display:none;">
-    <img src="logo.png" alt="Store Logo">
-    <h2 id="welcome">Welcome</h2>
-    <p class="tier" id="tier">Bronze</p>
-    <div class="points" id="points">0 pts</div>
-    <div class="progress-container">
-      <div class="progress-bar" id="progress"></div>
+  <div id="loading">Loading...</div>
+  <div id="error"></div>
+
+  <!-- Membership Card -->
+  <div id="card" class="member-card" style="display:none;">
+    <img id="memberCardImage" src="images/member-card.png" alt="Member Card" />
+    <div class="card-info">
+      <h2 id="welcome"></h2>
+      <p>Points: <span id="points"></span></p>
+      <p>Tier: <span id="tier"></span></p>
+      <img id="badgeImage" class="tier-badge" src="" alt="Tier Badge" />
     </div>
-    <p id="nextTierText"></p>
-    <button id="coffeeBtn">☕ Record Coffee Purchase</button>
   </div>
 
-  <p id="loading">Loading...</p>
-  <p id="error"></p>
+  <!-- Record Coffee Button -->
+  <div id="actions" style="text-align:center; margin-top:20px;">
+    <button id="coffeeBtn" class="coffee-btn">☕ Record Coffee Purchase</button>
+  </div>
 
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script>
+    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzrITrxghgf8sbcccarEgf81w5a_PDa-tJDjaPR5XbuoUDFtjpDu26Dz5iYl91Z7TxZ/exec";
     const LIFF_ID = "2007890960-Yjq6VQWo";
-    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzrITrxghgf8sbcccarEgf81w5a_PDa-tJDjaPR5XbuoUDFtjpDu26Dz5iYl91Z7TxZ/exec"; // Replace with your backend endpoint
 
     let currentUser = { userId: null, displayName: null };
 
@@ -107,6 +43,7 @@
         const profile = await liff.getProfile();
         currentUser.userId = profile.userId;
         currentUser.displayName = profile.displayName || "";
+
         await fetchAndRender();
 
         document.getElementById("coffeeBtn").onclick = async () => {
@@ -164,29 +101,18 @@
     }
 
     function renderUserData(data) {
-      document.getElementById("welcome").textContent = `Welcome, ${data.name || currentUser.displayName || data.userId}`;
-      document.getElementById("points").textContent = `${data.points ?? 0} pts`;
+      document.getElementById("welcome").textContent =
+        `Welcome, ${data.name || currentUser.displayName}`;
+      document.getElementById("points").textContent = data.points ?? 0;
       document.getElementById("tier").textContent = data.tier || "Bronze";
 
-      // Progress calculation (example)
-      const currentPoints = data.points ?? 0;
-      const nextTierPoints = getNextTierPoints(data.tier);
-      const progressPercent = Math.min(100, (currentPoints / nextTierPoints) * 100);
-      document.getElementById("progress").style.width = progressPercent + "%";
-      document.getElementById("nextTierText").textContent = `${nextTierPoints - currentPoints} points to next tier`;
+      // Badge logic
+      document.getElementById("badgeImage").src =
+        `images/${(data.tier || "bronze").toLowerCase()}-badge.png`;
 
       document.getElementById("loading").style.display = "none";
       document.getElementById("card").style.display = "block";
       document.getElementById("error").textContent = "";
-    }
-
-    function getNextTierPoints(tier) {
-      switch (tier) {
-        case "Bronze": return 100;
-        case "Silver": return 300;
-        case "Gold": return 500;
-        default: return 999999;
-      }
     }
 
     function showError(msg) {
@@ -199,4 +125,3 @@
   </script>
 </body>
 </html>
-
