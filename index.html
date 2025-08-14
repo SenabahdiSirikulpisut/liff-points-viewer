@@ -4,114 +4,94 @@
   <meta charset="utf-8" />
   <title>7-Eleven Membership</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
-    body { 
-      font-family: 'Segoe UI', Arial, sans-serif; 
-      padding:20px; 
-      max-width:600px; 
-      margin:auto; 
-      background:#f5f5f5; 
-    }
-    h1 { 
-      text-align:center; 
-      color:#333; 
-      margin-bottom:30px; 
-      font-weight:600;
-    }
+    body { font-family: 'Oxanium', sans-serif; padding:20px; max-width:500px; margin:auto; background:#f0f0f0; }
     #loading { color: #777; text-align:center; margin-top:50px; }
     #error { color: red; text-align:center; margin-top:20px; }
 
-    /* Member name above the card */
-    .member-greeting {
-      font-size: 20px;
-      font-weight: 500;
-      text-align: center;
-      margin-bottom: 10px;
-      color: #444;
-    }
+    /* Welcome text */
+    #welcomeText { font-size: 20px; font-weight: 600; margin-bottom:8px; text-align:left; }
 
     /* Member card */
     .member-card {
-      background: linear-gradient(135deg, #cd7f32, #ffa500); /* Bronze default */
-      color: white;
-      border-radius: 16px;
-      padding: 20px;
       width: 100%;
       height: 180px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      border-radius: 16px;
+      padding: 20px;
       position: relative;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
+      color: white;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      background: linear-gradient(135deg, #cd7f32, #ffa500); /* default Bronze */
     }
-
-    /* Tier badge top-right */
-    .member-card .tier-badge {
+    .tier-badge {
       position: absolute;
       top: 12px;
       right: 12px;
-      background: rgba(255,255,255,0.9);
+      background: rgba(255,255,255,0.8);
       color: #333;
       padding: 4px 12px;
       border-radius: 12px;
       font-weight: bold;
       font-size:14px;
     }
+    .member-card h2, .member-card p { margin:0; }
+    .member-card .points { font-size: 18px; }
+    .member-card .name-bottom { position:absolute; bottom:16px; left:20px; font-weight:600; font-size:16px; }
 
-    /* Points big in the middle */
-    .member-card .points {
-      font-size: 28px;
-      font-weight: 600;
+    /* Progress bar */
+    .tier-progress {
+      width: 100%;
+      height: 10px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 6px;
+      overflow:hidden;
+      margin-top:10px;
+    }
+    .tier-progress-fill {
+      height: 100%;
+      width: 0%;
+      background:white;
+      border-radius: 6px;
+      transition: width 0.5s ease-in-out;
     }
 
-    /* Customer name bottom-left */
-    .member-card .member-name {
-      font-size: 16px;
-      font-weight: 400;
-      opacity: 0.9;
-      align-self: flex-start;
-    }
-
-    /* Badges below card */
-    #cardBadges { margin-top:12px; text-align:center; }
+    /* Badges */
+    #cardBadges { margin-top:12px; }
     #cardBadges img { width:40px; margin:4px; }
 
     /* Button */
     button { 
-      padding: 10px 16px; 
-      border:none; 
-      background:#0078FF; 
-      color:white; 
-      border-radius:6px; 
-      cursor:pointer; 
-      margin-top:16px; 
-      font-size:16px; 
-      display:block;
-      margin-left:auto;
-      margin-right:auto;
+      padding: 10px 16px; border:none; background:#0078FF; color:white; border-radius:6px; 
+      cursor:pointer; margin-top:16px; font-size:16px; width:100%;
     }
     button:hover { background:#005BBB; }
   </style>
 </head>
 <body>
-  <h1>7-Eleven Membership</h1>
+  <h1 style="text-align:center;">7-Eleven Membership</h1>
   <div id="loading">Loading...</div>
   <div id="error"></div>
 
-  <div class="member-greeting" id="memberGreeting" style="display:none;"></div>
+  <div id="welcomeText"></div>
 
   <div id="card" class="member-card" style="display:none;">
     <div class="tier-badge" id="tierBadge">Bronze</div>
-    <div class="points">Points: <span id="cardPoints">0</span></div>
-    <div class="member-name" id="cardName">Member Name</div>
+    <p class="points">Points: <span id="cardPoints">0</span></p>
+    <div class="tier-progress">
+      <div class="tier-progress-fill" id="tierProgress"></div>
+    </div>
+    <div id="cardBadges"></div>
+    <div class="name-bottom" id="cardName">Member Name</div>
+    <button id="coffeeBtn">Record Coffee Purchase</button>
   </div>
 
-  <div id="cardBadges"></div>
-  <button id="coffeeBtn" style="display:none;">Record Coffee Purchase</button>
-
   <script>
-    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxGc1cKNxf0UDnOMBBRJcwxfka6iGY_SiJEkaJAeCHhARzjgDNcU1BVt4mvur-NVGvj/exec";
+    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxdYfuRnpEVGahWXGLFsj4kfVXJ_CLQBOwwnK0HWBEHWqm7gBzHmhaCd__gL9MeUuQf/exec";
     const LIFF_ID = "2007890960-Yjq6VQWo";
 
     let currentUser = { userId: null, displayName: null };
@@ -174,11 +154,9 @@
     }
 
     function renderUserData(data) {
-      const nameText = data.name || currentUser.displayName || data.userId;
-      document.getElementById("memberGreeting").textContent = `Welcome, ${nameText}`;
-      document.getElementById("memberGreeting").style.display = "block";
+      document.getElementById("welcomeText").textContent = `Welcome, ${data.name || currentUser.displayName || data.userId}`;
+      document.getElementById("cardName").textContent = data.name || currentUser.displayName || data.userId;
 
-      document.getElementById("cardName").textContent = nameText;
       animatePoints(data.points ?? 0);
       document.getElementById("tierBadge").textContent = data.tier || "Bronze";
       setCardTierColor(data.tier);
@@ -189,9 +167,16 @@
         `<img src="https://via.placeholder.com/40?text=${encodeURIComponent(b)}" alt="${b}">`
       ).join("");
 
+      // Tier progress (assuming Bronze 0-49, Silver 50-99, Gold 100+)
+      const points = data.points ?? 0;
+      let progressPercent = 0;
+      if(data.tier === "Bronze") progressPercent = Math.min(points / 50 * 100, 100);
+      else if(data.tier === "Silver") progressPercent = Math.min((points - 50)/50*100, 100);
+      else progressPercent = 100;
+      document.getElementById("tierProgress").style.width = progressPercent + "%";
+
       document.getElementById("loading").style.display = "none";
-      document.getElementById("card").style.display = "flex";
-      document.getElementById("coffeeBtn").style.display = "block";
+      document.getElementById("card").style.display = "block";
       document.getElementById("error").textContent = "";
     }
 
@@ -224,6 +209,5 @@
   </script>
 </body>
 </html>
-
 
 
