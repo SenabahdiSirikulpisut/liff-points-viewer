@@ -3,32 +3,112 @@
 <head>
   <meta charset="utf-8" />
   <title>7-Eleven Membership</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding:20px; max-width:600px; margin:auto; background:#f5f5f5; }
+    #loading { color: #777; text-align:center; margin-top:50px; }
+    #error { color: red; text-align:center; margin-top:20px; }
+
+    /* Member Card Container */
+    .member-card {
+      position: relative;
+      width: 100%;
+      max-width: 350px;
+      margin: 40px auto;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+      color: white;
+      background-size: cover;
+      background-position: center;
+    }
+
+    /* Gloss overlay */
+    .member-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(120deg, rgba(255,255,255,0.3), rgba(255,255,255,0) 50%);
+      pointer-events: none;
+    }
+
+    /* Card header with logo & tier */
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+    }
+    .card-header img {
+      height: 40px;
+    }
+    .tier-badge {
+      background: rgba(255,255,255,0.9);
+      color: #333;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    /* Card content */
+    .card-content {
+      padding: 20px;
+    }
+    .card-content h2 {
+      margin: 0;
+      font-size: 22px;
+    }
+    .card-content p {
+      font-size: 18px;
+      margin: 6px 0;
+    }
+
+    /* Badges row */
+    #cardBadges { margin-top:12px; }
+    #cardBadges img { width:40px; margin:4px; }
+
+    /* Button */
+    button { 
+      display: block;
+      width: calc(100% - 40px);
+      margin: 20px auto;
+      padding: 10px;
+      border: none;
+      background: #0078FF;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover { background: #005BBB; }
+  </style>
 </head>
 <body>
+  <h1 style="text-align:center;">7-Eleven Membership</h1>
   <div id="loading">Loading...</div>
   <div id="error"></div>
 
-  <!-- Membership Card -->
   <div id="card" class="member-card" style="display:none;">
-    <img id="memberCardImage" src="images/member-card.png" alt="Member Card" />
-    <div class="card-info">
-      <h2 id="welcome"></h2>
-      <p>Points: <span id="points"></span></p>
-      <p>Tier: <span id="tier"></span></p>
-      <img id="badgeImage" class="tier-badge" src="" alt="Tier Badge" />
+    <div class="card-header">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/7-eleven-logo.svg" alt="7-Eleven">
+      <div class="tier-badge" id="tierBadge">Bronze</div>
+    </div>
+    <div class="card-content">
+      <h2 id="cardName">Welcome</h2>
+      <p>Points: <span id="cardPoints">0</span></p>
+      <div id="cardBadges"></div>
     </div>
   </div>
 
-  <!-- Record Coffee Button -->
-  <div id="actions" style="text-align:center; margin-top:20px;">
-    <button id="coffeeBtn" class="coffee-btn">☕ Record Coffee Purchase</button>
-  </div>
+  <button id="coffeeBtn" style="display:none;">Record Coffee Purchase</button>
 
   <script>
-    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzrITrxghgf8sbcccarEgf81w5a_PDa-tJDjaPR5XbuoUDFtjpDu26Dz5iYl91Z7TxZ/exec";
+    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxdYfuRnpEVGahWXGLFsj4kfVXJ_CLQBOwwnK0HWBEHWqm7gBzHmhaCd__gL9MeUuQf/exec";
     const LIFF_ID = "2007890960-Yjq6VQWo";
 
     let currentUser = { userId: null, displayName: null };
@@ -36,10 +116,8 @@
     async function main() {
       try {
         await liff.init({ liffId: LIFF_ID });
-        if (!liff.isLoggedIn()) {
-          liff.login();
-          return;
-        }
+        if (!liff.isLoggedIn()) { liff.login(); return; }
+
         const profile = await liff.getProfile();
         currentUser.userId = profile.userId;
         currentUser.displayName = profile.displayName || "";
@@ -51,77 +129,92 @@
           if (!password) return;
           await recordCoffeePurchase(password);
         };
-      } catch (err) {
-        showError(err.message || String(err));
-      }
+
+      } catch (err) { showError(err.message || String(err)); }
     }
 
     async function fetchAndRender() {
       try {
         const res = await fetch(BACKEND_URL, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({ userId: currentUser.userId, name: currentUser.displayName })
         });
         if (!res.ok) throw new Error("Network response not ok: " + res.status);
         const data = await res.json();
-        if (data.error) {
-          showError(data.error);
-          return;
-        }
+        if (data.error) { showError(data.error); return; }
         renderUserData(data);
-      } catch (err) {
-        showError(err.message || String(err));
-      }
+      } catch (err) { showError(err.message || String(err)); }
     }
 
     async function recordCoffeePurchase(password) {
       try {
         const res = await fetch(BACKEND_URL, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userId: currentUser.userId,
-            name: currentUser.displayName,
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ 
+            userId: currentUser.userId, 
+            name: currentUser.displayName, 
             action: "coffee_purchase",
             password
           })
         });
         if (!res.ok) throw new Error("Network response not ok: " + res.status);
         const data = await res.json();
-        if (data.error) {
-          alert("Error: " + data.error);
-          return;
-        }
+        if (data.error) { alert("Error: " + data.error); return; }
         renderUserData(data);
         alert("Coffee purchase recorded! Points updated.");
       } catch (err) {
         alert("Failed to record purchase: " + err.message);
+        console.error(err);
       }
     }
 
     function renderUserData(data) {
-      document.getElementById("welcome").textContent =
-        `Welcome, ${data.name || currentUser.displayName}`;
-      document.getElementById("points").textContent = data.points ?? 0;
-      document.getElementById("tier").textContent = data.tier || "Bronze";
+      document.getElementById("cardName").textContent = `Welcome, ${data.name || currentUser.displayName || data.userId}`;
+      animatePoints(data.points ?? 0);
+      document.getElementById("tierBadge").textContent = data.tier || "Bronze";
+      setCardTierColor(data.tier);
 
-      // Badge logic
-      document.getElementById("badgeImage").src =
-        `images/${(data.tier || "bronze").toLowerCase()}-badge.png`;
+      const badges = (data.badges || "").split(",").map(b => b.trim()).filter(Boolean);
+      document.getElementById("cardBadges").innerHTML = badges.map(b =>
+        `<img src="https://via.placeholder.com/40?text=${encodeURIComponent(b)}" alt="${b}">`
+      ).join("");
 
       document.getElementById("loading").style.display = "none";
       document.getElementById("card").style.display = "block";
+      document.getElementById("coffeeBtn").style.display = "block";
       document.getElementById("error").textContent = "";
+    }
+
+    function setCardTierColor(tier) {
+      const card = document.getElementById("card");
+      if(tier === "Bronze") card.style.background = "linear-gradient(135deg, #cd7f32, #d99058)";
+      else if(tier === "Silver") card.style.background = "linear-gradient(135deg, #c0c0c0, #e0e0e0)";
+      else if(tier === "Gold") card.style.background = "linear-gradient(135deg, #ffd700, #ffcc00)";
+    }
+
+    function animatePoints(newPoints) {
+      const el = document.getElementById("cardPoints");
+      let current = Number(el.textContent);
+      const step = (newPoints - current) / 20;
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i++ >= 20) { el.textContent = newPoints; clearInterval(interval); }
+        else el.textContent = Math.round(current + step * i);
+      }, 20);
     }
 
     function showError(msg) {
       document.getElementById("loading").style.display = "none";
       document.getElementById("card").style.display = "none";
+      document.getElementById("coffeeBtn").style.display = "none";
       document.getElementById("error").textContent = "Error: " + msg;
+      console.error(msg);
     }
 
     main();
   </script>
 </body>
 </html>
+
