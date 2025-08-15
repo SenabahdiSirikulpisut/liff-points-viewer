@@ -21,6 +21,13 @@
       overflow: hidden;
       box-shadow: 0 6px 15px rgba(0,0,0,0.2);
       transition: transform 0.3s;
+      width: 100%;
+      max-width: 600px; /* keeps card at original width */
+      min-height: 180px; /* original card height */
+      padding: 2rem; /* slightly larger padding for spacing */
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between; /* distributes content nicely */
     }
 
     .member-card:hover {
@@ -31,7 +38,10 @@
     .tier-gold { background: linear-gradient(135deg, #FFD700, #B8860B); color: #222; }
     .tier-black { background: linear-gradient(135deg, #272727, #3a3a3a); color: #fff; }
 
-    .tier-badge { font-weight: bold; font-size: 0.9rem; }
+    .tier-badge {
+      font-weight: bold;
+      font-size: 0.9rem;
+    }
 
     .points { font-size: 2rem; font-weight: 700; }
     .progress { height: 1.5rem; border-radius: 1rem; }
@@ -44,34 +54,29 @@
 
   <div id="loading" class="text-secondary mb-3">Loading...</div>
   <div id="error" class="text-danger mb-3"></div>
+
   <div id="welcomeMsg" class="mb-3 fs-5 fw-bold" style="display:none;"></div>
 
   <!-- Member Card -->
-  <div id="card" class="member-card p-3 d-flex flex-column justify-content-between text-center" style="display:none; height:180px;">
-    <!-- Top: Name & Tier Badge -->
-    <div class="d-flex justify-content-between align-items-start">
-      <span id="cardName" class="fs-5 fw-semibold">Member Name</span>
-      <span id="tierBadge" class="badge tier-badge bg-light text-dark">Silver</span>
-    </div>
-
-    <!-- Middle: Points & Badges -->
+  <div id="card" class="member-card mb-3 text-center" style="display:none;">
     <div>
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span id="cardName" class="fs-5 fw-semibold">Member Name</span>
+        <span id="tierBadge" class="badge tier-badge bg-light text-dark">Silver</span>
+      </div>
       <div class="points mb-2">Points: <span id="cardPoints">0</span></div>
-      <div id="cardBadges" class="mb-2"></div>
-    </div>
-
-    <!-- Bottom: Progress Bar -->
-    <div>
-      <div class="progress mb-1" style="height: 16px; border-radius: 12px;">
+      <div id="cardBadges" class="mb-3"></div>
+      <div class="progress mb-2">
         <div id="tierProgress" class="progress-bar bg-dark" role="progressbar" style="width: 0%;" aria-valuemin="0" aria-valuemax="100"></div>
       </div>
       <div id="progressText" class="fw-semibold"></div>
     </div>
   </div>
 
-  <button id="coffeeBtn" class="btn btn-primary btn-lg" style="display:none;">Record Coffee Purchase</button>
+  <!-- Spaced button -->
+  <button id="coffeeBtn" class="btn btn-primary btn-lg mt-4" style="display:none;">Record Coffee Purchase</button>
 
-  <!-- Bootstrap JS -->
+  <!-- Bootstrap JS (for components if needed) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
@@ -152,7 +157,7 @@
       animatePoints(points);
 
       const card = document.getElementById("card");
-      card.className = "member-card p-3 d-flex flex-column justify-content-between text-center " + (tierClasses[tier] || tierClasses["Silver"]);
+      card.className = "member-card mb-3 text-center " + (tierClasses[tier] || tierClasses["Silver"]);
       document.getElementById("tierBadge").textContent = tier;
 
       renderProgress(points);
@@ -161,7 +166,7 @@
       document.getElementById("cardBadges").innerHTML = badges.map(b => `<span class="badge badge-star text-warning">⭐</span>`).join("");
 
       document.getElementById("loading").style.display = "none";
-      card.style.display = "flex";
+      card.style.display = "block";
       document.getElementById("coffeeBtn").style.display = "block";
       document.getElementById("error").textContent = "";
     }
