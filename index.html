@@ -27,6 +27,7 @@
       border-radius: 16px;
       padding: 16px;
       color: white;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.25);
       position: relative;
       margin-bottom: 20px;
       height: 180px;
@@ -40,7 +41,7 @@
     .member-card * {
       position: relative;
       z-index: 1;
-      text-shadow: 1px 1px 0 #ccc, 2px 2px 0 #aaa, 3px 3px 0 #888;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
     }
 
     .tier-badge {
@@ -56,12 +57,41 @@
       text-shadow: none;
     }
 
-    .member-name { font-size: 18px; font-weight: 600; align-self: flex-start; margin-left: 8px; }
-    .points { font-size: 28px; font-weight: bold; margin-top: 4px; }
+    .member-name {
+      font-size: 18px;
+      font-weight: 600;
+      align-self: flex-start;
+      margin-left: 8px;
+    }
 
-    #progressWrapper { position: relative; height: 36px; margin-bottom: 16px; }
-    .progress-container { width: 100%; height: 16px; background: rgba(200,200,200,0.3); border-radius: 12px; position: relative; overflow: hidden; }
-    .progress-bar { height: 16px; border-radius: 12px; background: linear-gradient(90deg, #FFD700, #FFB000); width: 0%; transition: width 1s ease, background 0.5s; }
+    .points {
+      font-size: 28px; 
+      font-weight: bold;
+      margin-top: 4px;
+    }
+
+    #progressWrapper {
+      position: relative;
+      height: 36px;
+      margin-bottom: 16px;
+    }
+
+    .progress-container {
+      width: 100%;
+      height: 16px;
+      background: rgba(200,200,200,0.3);
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 16px;
+      border-radius: 12px;
+      background: linear-gradient(90deg, #FFD700, #FFB000);
+      width: 0%;
+      transition: width 1s ease, background 0.5s;
+    }
 
     .progress-node {
       position: absolute;
@@ -74,7 +104,12 @@
       background: rgba(255,255,255,0.3);
       transition: background 0.5s, transform 0.3s;
     }
-    .progress-node.achieved { background: #FFD700; border-color: #FFB000; animation: popNode 0.5s ease forwards; }
+
+    .progress-node.achieved {
+      background: #FFD700;
+      border-color: #FFB000;
+      animation: popNode 0.5s ease forwards;
+    }
 
     @keyframes popNode {
       0% { transform: translate(-50%, -50%) scale(0.8); }
@@ -82,7 +117,13 @@
       100% { transform: translate(-50%, -50%) scale(1); }
     }
 
-    .progress-text { font-size: 14px; color: #333; text-align: center; margin-top: 4px; text-shadow: none; }
+    .progress-text {
+      font-size: 14px;
+      color: #333;
+      text-align: center;
+      margin-top: 4px;
+    }
+
     #cardBadges { margin-top:8px; }
     #cardBadges span { font-size: 24px; margin: 2px; }
 
@@ -92,11 +133,23 @@
     }
     button:hover { background:#005BBB; }
 
-    /* Fast-loading Tier Gradients */
-    .tier-silver { background: linear-gradient(135deg, #cccccc, #bfbfbf); color: #333; }
-    .tier-gold { background: linear-gradient(135deg, #f1df73, #e6c200); color: #222; }
-    .tier-black { background: linear-gradient(135deg, #272727, #0f0f0f); color: #fff; }
+    /* Luxurious metallic textures using CSS */
+    .tier-silver {
+      background: linear-gradient(135deg, #d4d4d4 0%, #b0b0b0 25%, #d4d4d4 50%, #b0b0b0 75%, #d4d4d4 100%);
+      background-size: 60px 60px;
+    }
 
+    .tier-gold {
+      background: linear-gradient(135deg, #FFD700 0%, #E6C200 25%, #FFD700 50%, #E6C200 75%, #FFD700 100%);
+      background-size: 60px 60px;
+      box-shadow: 0 6px 20px rgba(255,215,0,0.5);
+    }
+
+    .tier-black {
+      background: linear-gradient(135deg, #1C1C1C 0%, #333333 25%, #1C1C1C 50%, #333333 75%, #1C1C1C 100%);
+      background-size: 60px 60px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+    }
   </style>
 </head>
 <body>
@@ -104,6 +157,7 @@
 
   <div id="loading">Loading...</div>
   <div id="error"></div>
+
   <div id="welcomeMsg" style="display:none;"></div>
 
   <div id="card" class="member-card" style="display:none;">
@@ -126,11 +180,16 @@
   <button id="coffeeBtn" style="display:none;">Record Coffee Purchase</button>
 
   <script>
-    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzC-XpWbaNvjva6y7QEOhO-rJVlhCn0Q2z3Q6f0XW9jy3R5ugPAQsrsnoi73n4SWCnk/exec";
-    const LIFF_ID = "2007890960-Yjq6VQWo";
+    const BACKEND_URL = "YOUR_BACKEND_URL";
+    const LIFF_ID = "YOUR_LIFF_ID";
 
     let currentUser = { userId: null, displayName: null };
-    const tierClasses = { "Silver":"tier-silver", "Gold":"tier-gold", "Black":"tier-black" };
+
+    const tierClasses = {
+      "Silver": "tier-silver",
+      "Gold": "tier-gold",
+      "Black": "tier-black"
+    };
 
     async function main() {
       try {
@@ -199,10 +258,12 @@
       document.getElementById("welcomeMsg").style.display = "block";
 
       document.getElementById("cardName").textContent = data.name || currentUser.displayName || data.userId;
+
       animatePoints(points);
 
       const card = document.getElementById("card");
       card.className = "member-card " + (tierClasses[tier] || tierClasses["Silver"]);
+
       document.getElementById("tierBadge").textContent = tier;
 
       renderProgress(points);
