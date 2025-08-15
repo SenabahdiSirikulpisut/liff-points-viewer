@@ -40,9 +40,7 @@
     .member-card * {
       position: relative;
       z-index: 1;
-      text-shadow: 1px 1px 0 #ccc, 
-                   2px 2px 0 #aaa, 
-                   3px 3px 0 #888;
+      text-shadow: 1px 1px 0 #ccc, 2px 2px 0 #aaa, 3px 3px 0 #888;
     }
 
     .tier-badge {
@@ -58,41 +56,12 @@
       text-shadow: none;
     }
 
-    .member-name {
-      font-size: 18px;
-      font-weight: 600;
-      align-self: flex-start;
-      margin-left: 8px;
-    }
+    .member-name { font-size: 18px; font-weight: 600; align-self: flex-start; margin-left: 8px; }
+    .points { font-size: 28px; font-weight: bold; margin-top: 4px; }
 
-    .points {
-      font-size: 28px; 
-      font-weight: bold;
-      margin-top: 4px;
-    }
-
-    #progressWrapper {
-      position: relative;
-      height: 36px;
-      margin-bottom: 16px;
-    }
-
-    .progress-container {
-      width: 100%;
-      height: 16px;
-      background: rgba(200,200,200,0.3);
-      border-radius: 12px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .progress-bar {
-      height: 16px;
-      border-radius: 12px;
-      background: linear-gradient(90deg, #FFD700, #FFB000);
-      width: 0%;
-      transition: width 1s ease, background 0.5s;
-    }
+    #progressWrapper { position: relative; height: 36px; margin-bottom: 16px; }
+    .progress-container { width: 100%; height: 16px; background: rgba(200,200,200,0.3); border-radius: 12px; position: relative; overflow: hidden; }
+    .progress-bar { height: 16px; border-radius: 12px; background: linear-gradient(90deg, #FFD700, #FFB000); width: 0%; transition: width 1s ease, background 0.5s; }
 
     .progress-node {
       position: absolute;
@@ -105,12 +74,7 @@
       background: rgba(255,255,255,0.3);
       transition: background 0.5s, transform 0.3s;
     }
-
-    .progress-node.achieved {
-      background: #FFD700;
-      border-color: #FFB000;
-      animation: popNode 0.5s ease forwards;
-    }
+    .progress-node.achieved { background: #FFD700; border-color: #FFB000; animation: popNode 0.5s ease forwards; }
 
     @keyframes popNode {
       0% { transform: translate(-50%, -50%) scale(0.8); }
@@ -118,14 +82,7 @@
       100% { transform: translate(-50%, -50%) scale(1); }
     }
 
-    .progress-text {
-      font-size: 14px;
-      color: #333;
-      text-align: center;
-      margin-top: 4px;
-      text-shadow: none;
-    }
-
+    .progress-text { font-size: 14px; color: #333; text-align: center; margin-top: 4px; text-shadow: none; }
     #cardBadges { margin-top:8px; }
     #cardBadges span { font-size: 24px; margin: 2px; }
 
@@ -135,26 +92,11 @@
     }
     button:hover { background:#005BBB; }
 
-    /* Silver Tier */
-    .tier-silver {
-      background-color: #cccccc;
-      background-image: url("data:image/svg+xml,%3Csvg width='100' height='20' viewBox='0 0 100 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M21.184 20c.357-.13.72-.264 1.088-.402l1.768-.661C33.64 15.347 39.647 14 50 14c10.271 0 15.362 1.222 24.629 4.928.955.383 1.869.74 2.75 1.072h6.225c-2.51-.73-5.139-1.691-8.233-2.928C65.888 13.278 60.562 12 50 12c-10.626 0-16.855 1.397-26.66 5.063l-1.767.662c-2.475.923-4.66 1.674-6.724 2.275h6.335zm0-20C13.258 2.892 8.077 4 0 4V2c5.744 0 9.951-.574 14.85-2h6.334zM77.38 0C85.239 2.966 90.502 4 100 4V2c-6.842 0-11.386-.542-16.396-2h-6.225zM0 14c8.44 0 13.718-1.21 22.272-4.402l1.768-.661C33.64 5.347 39.647 4 50 4c10.271 0 15.362 1.222 24.629 4.928C84.112 12.722 89.438 14 100 14v-2c-10.271 0-15.362-1.222-24.629-4.928C65.888 3.278 60.562 2 50 2 39.374 2 33.145 3.397 23.34 7.063l-1.767.662C13.223 10.84 8.163 12 0 12v2z' fill='%23ffffff' fill-opacity='0.4' fill-rule='evenodd'/%3E%3C/svg%3E");
-      background-size: cover;
-    }
+    /* Fast-loading Tier Gradients */
+    .tier-silver { background: linear-gradient(135deg, #cccccc, #bfbfbf); color: #333; }
+    .tier-gold { background: linear-gradient(135deg, #f1df73, #e6c200); color: #222; }
+    .tier-black { background: linear-gradient(135deg, #272727, #0f0f0f); color: #fff; }
 
-    /* Gold Tier */
-    .tier-gold {
-      background-color: #f1df73;
-      background-image: url("data:image/svg+xml,%3Csvg width='100' height='20' viewBox='0 0 100 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M21.184 20c.357-.13.72-.264 1.088-.402l1.768-.661C33.64 15.347 39.647 14 50 14c10.271 0 15.362 1.222 24.629 4.928.955.383 1.869.74 2.75 1.072h6.225c-2.51-.73-5.139-1.691-8.233-2.928C65.888 13.278 60.562 12 50 12c-10.626 0-16.855 1.397-26.66 5.063l-1.767.662c-2.475.923-4.66 1.674-6.724 2.275h6.335zm0-20C13.258 2.892 8.077 4 0 4V2c5.744 0 9.951-.574 14.85-2h6.334zM77.38 0C85.239 2.966 90.502 4 100 4V2c-6.842 0-11.386-.542-16.396-2h-6.225zM0 14c8.44 0 13.718-1.21 22.272-4.402l1.768-.661C33.64 5.347 39.647 4 50 4c10.271 0 15.362 1.222 24.629 4.928C84.112 12.722 89.438 14 100 14v-2c-10.271 0-15.362-1.222-24.629-4.928C65.888 3.278 60.562 2 50 2 39.374 2 33.145 3.397 23.34 7.063l-1.767.662C13.223 10.84 8.163 12 0 12v2z' fill='%23ffffff' fill-opacity='0.4' fill-rule='evenodd'/%3E%3C/svg%3E");
-      background-size: cover;
-    }
-
-    /* Black Tier */
-    .tier-black {
-      background-color: #272727;
-      background-image: url("data:image/svg+xml,%3Csvg width='100' height='20' viewBox='0 0 100 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M21.184 20c.357-.13.72-.264 1.088-.402l1.768-.661C33.64 15.347 39.647 14 50 14c10.271 0 15.362 1.222 24.629 4.928.955.383 1.869.74 2.75 1.072h6.225c-2.51-.73-5.139-1.691-8.233-2.928C65.888 13.278 60.562 12 50 12c-10.626 0-16.855 1.397-26.66 5.063l-1.767.662c-2.475.923-4.66 1.674-6.724 2.275h6.335zm0-20C13.258 2.892 8.077 4 0 4V2c5.744 0 9.951-.574 14.85-2h6.334zM77.38 0C85.239 2.966 90.502 4 100 4V2c-6.842 0-11.386-.542-16.396-2h-6.225zM0 14c8.44 0 13.718-1.21 22.272-4.402l1.768-.661C33.64 5.347 39.647 4 50 4c10.271 0 15.362 1.222 24.629 4.928C84.112 12.722 89.438 14 100 14v-2c-10.271 0-15.362-1.222-24.629-4.928C65.888 3.278 60.562 2 50 2 39.374 2 33.145 3.397 23.34 7.063l-1.767.662C13.223 10.84 8.163 12 0 12v2z' fill='%23b6b5b9' fill-opacity='0.4' fill-rule='evenodd'/%3E%3C/svg%3E");
-      background-size: cover;
-    }
   </style>
 </head>
 <body>
@@ -162,7 +104,6 @@
 
   <div id="loading">Loading...</div>
   <div id="error"></div>
-
   <div id="welcomeMsg" style="display:none;"></div>
 
   <div id="card" class="member-card" style="display:none;">
@@ -185,7 +126,6 @@
   <button id="coffeeBtn" style="display:none;">Record Coffee Purchase</button>
 
   <script>
-    /* Your existing JS code unchanged */
     const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzC-XpWbaNvjva6y7QEOhO-rJVlhCn0Q2z3Q6f0XW9jy3R5ugPAQsrsnoi73n4SWCnk/exec";
     const LIFF_ID = "2007890960-Yjq6VQWo";
 
@@ -259,7 +199,6 @@
       document.getElementById("welcomeMsg").style.display = "block";
 
       document.getElementById("cardName").textContent = data.name || currentUser.displayName || data.userId;
-
       animatePoints(points);
 
       const card = document.getElementById("card");
@@ -286,7 +225,45 @@
       const interval = setInterval(() => {
         if (i++ >= 20) { el.textContent = newPoints; clearInterval(interval); }
         else el.textContent = Math.round(current + step * i);
-      }, 
+      }, 20);
+    }
 
+    function renderProgress(points) {
+      const progressBar = document.getElementById("tierProgress");
+      const nodes = document.querySelectorAll(".progress-node");
+      const textEl = document.getElementById("progressText");
 
+      let percent = Math.min(points, 100);
+      progressBar.style.width = percent + "%";
 
+      nodes.forEach((node, index) => {
+        if ((index === 0 && points >= 0) ||
+            (index === 1 && points >= 50) ||
+            (index === 2 && points >= 100)) {
+          node.classList.add("achieved");
+        } else {
+          node.classList.remove("achieved");
+        }
+      });
+
+      let nextTierPoints = 0;
+      if (points < 50) nextTierPoints = 50 - points;
+      else if (points < 100) nextTierPoints = 100 - points;
+      else nextTierPoints = 0;
+
+      textEl.textContent = nextTierPoints > 0 ? `${nextTierPoints} points to next tier` : 'Max tier reached';
+    }
+
+    function showError(msg) {
+      document.getElementById("loading").style.display = "none";
+      document.getElementById("card").style.display = "none";
+      document.getElementById("progressWrapper").style.display = "none";
+      document.getElementById("coffeeBtn").style.display = "none";
+      document.getElementById("error").textContent = "Error: " + msg;
+      console.error(msg);
+    }
+
+    main();
+  </script>
+</body>
+</html>
