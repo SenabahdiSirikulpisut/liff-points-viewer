@@ -4,11 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>7-Eleven Membership</title>
-  <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@400;700&display=swap" rel="stylesheet">
-  <!-- LIFF SDK -->
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
     body {
@@ -32,14 +29,6 @@
       animation: fadeSlideIn 1s ease forwards;
     }
 
-    p {
-      text-align: center;
-      margin: 0 1rem 1.5rem 1rem;
-      opacity: 0;
-      transform: translateY(-10px);
-      animation: fadeSlideIn 1s ease 0.3s forwards;
-    }
-
     .flip-card {
       background-color: transparent;
       width: 100%;
@@ -55,7 +44,6 @@
       transform-style: preserve-3d;
     }
 
-    .flip-card:hover .flip-card-inner,
     .flip-card.flip .flip-card-inner {
       transform: rotateY(180deg);
     }
@@ -96,15 +84,15 @@
       opacity: 0;
       transform: translateY(20px);
       animation: fadeSlideIn 1s ease 1.2s forwards;
+      margin-bottom: 2rem;
     }
 
     @media (max-width: 576px) {
       .flip-card-front, .flip-card-back { padding: 1rem; }
       .points { font-size: 1.7rem; }
-      #coffeeBtn { width: 100%; margin-top: 1.5rem; }
+      #coffeeBtn { width: 100%; }
     }
 
-    /* Animations */
     @keyframes fadeSlideIn {
       to { opacity: 1; transform: translateY(0); }
     }
@@ -117,12 +105,9 @@
 <body>
 
   <h1 class="mb-3">7-Eleven Membership</h1>
-  <p class="text-secondary mb-4">Welcome to your membership dashboard</p>
 
   <div id="loading" class="text-secondary mb-3">Loading...</div>
   <div id="error" class="text-danger mb-3"></div>
-
-  <div id="welcomeMsg" class="mb-3 fs-5 fw-bold text-center" style="display:none;"></div>
 
   <!-- Flip Card -->
   <div id="card" class="flip-card" style="display:none;" onclick="this.classList.toggle('flip')">
@@ -148,7 +133,6 @@
 
   <button id="coffeeBtn" class="btn btn-primary btn-lg mt-3" style="display:none;">Record Coffee Purchase</button>
 
-  <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
@@ -226,9 +210,6 @@
       const tier = data.tier || "Silver";
       const points = data.points ?? 0;
 
-      document.getElementById("welcomeMsg").textContent = `Welcome, ${data.name || currentUser.displayName || data.userId}`;
-      document.getElementById("welcomeMsg").style.display = "block";
-
       document.getElementById("cardName").textContent = data.name || currentUser.displayName || data.userId;
 
       animatePoints(points);
@@ -298,3 +279,5 @@
 
 </body>
 </html>
+
+
