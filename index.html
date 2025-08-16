@@ -13,30 +13,31 @@
       background: #f8f9fa;
       color: #212529;
       overflow-x: hidden;
+      padding-top: 1rem;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 1rem;
     }
 
     h1 {
       font-size: 2.5rem;
       font-weight: 700;
       text-align: center;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.3rem;
     }
 
     #welcomeMsg {
       font-size: 1.2rem;
-      font-weight: 500;
+      font-weight: 600;
       margin-bottom: 1rem;
       text-align: center;
     }
 
+    /* Flip Card */
     .flip-card {
       background-color: transparent;
-      width: 100%;
-      max-width: 400px; /* smaller card */
+      width: 350px;
+      max-width: 90%;
       perspective: 1000px;
       margin-bottom: 1.5rem;
     }
@@ -44,8 +45,9 @@
     .flip-card-inner {
       position: relative;
       width: 100%;
-      transition: transform 0.6s;
+      transition: transform 0.8s;
       transform-style: preserve-3d;
+      cursor: pointer;
     }
 
     .flip-card.flip .flip-card-inner {
@@ -53,25 +55,33 @@
     }
 
     .flip-card-front, .flip-card-back {
-      border-radius: 1rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
       position: absolute;
       width: 100%;
-      padding: 1.2rem;
       backface-visibility: hidden;
+      border-radius: 1rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      padding: 1.5rem;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: center;
       color: #fff;
+      min-height: 200px;
+    }
+
+    .flip-card-front {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
 
     .flip-card-back {
       transform: rotateY(180deg);
+      text-align: center;
     }
 
     .tier-silver { background: linear-gradient(135deg, #e0e0e0, #c0c0c0); color: #333; }
     .tier-gold { background: linear-gradient(135deg, #FFD700, #E6B800); color: #222; }
-    .tier-black { background: linear-gradient(135deg, #080707, #1a1a1a); color: #fff; }
+    .tier-black { background: linear-gradient(135deg, #272727, #3a3a3a); color: #fff; }
 
     .tier-badge {
       font-weight: 700;
@@ -80,33 +90,32 @@
     }
 
     .points { 
-      font-size: 1.8rem; 
+      font-size: 2rem; 
       font-weight: 700; 
     }
 
-    .progress { height: 1.5rem; border-radius: 1rem; }
+    .progress { height: 1.5rem; border-radius: 1rem; margin-top: 0.5rem; }
+
     .badge-star { font-size: 1.4rem; margin-right: 2px; }
 
     #coffeeBtn {
-      width: 100%;
-      max-width: 400px;
+      width: 350px;
+      max-width: 90%;
       margin-bottom: 2rem;
     }
 
     @media (max-width: 576px) {
-      .flip-card-front, .flip-card-back { padding: 1rem; }
-      .points { font-size: 1.5rem; }
-      #coffeeBtn { width: 100%; }
+      .flip-card { width: 90%; }
+      #coffeeBtn { width: 90%; }
+      .points { font-size: 1.7rem; }
     }
+
   </style>
 </head>
 <body>
 
   <h1>7-Eleven Membership</h1>
-  <div id="welcomeMsg" style="display:none;"></div>
-
-  <div id="loading" class="text-secondary mb-3">Loading...</div>
-  <div id="error" class="text-danger mb-3"></div>
+  <div id="welcomeMsg"></div>
 
   <!-- Flip Card -->
   <div id="card" class="flip-card" style="display:none;" onclick="this.classList.toggle('flip')">
@@ -123,14 +132,17 @@
         </div>
         <div id="progressText" class="fw-semibold"></div>
       </div>
-      <div id="cardBack" class="flip-card-back tier-silver text-center">
-        <h5>Privileges</h5>
-        <ul id="cardPrivileges" class="list-unstyled mb-0"></ul>
+      <div id="cardBack" class="flip-card-back tier-silver">
+        <h5>Member Privileges</h5>
+        <div id="cardPrivileges">No privileges yet</div>
       </div>
     </div>
   </div>
 
+  <!-- Record Purchase Button -->
   <button id="coffeeBtn" class="btn btn-primary btn-lg" style="display:none;">Record Coffee Purchase</button>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
     const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzC-XpWbaNvjva6y7QEOhO-rJVlhCn0Q2z3Q6f0XW9jy3R5ugPAQsrsnoi73n4SWCnk/exec";
@@ -138,11 +150,6 @@
 
     let currentUser = { userId: null, displayName: null };
     const tierClasses = { "Silver":"tier-silver", "Gold":"tier-gold", "Black":"tier-black" };
-    const privilegesByTier = {
-      "Silver": ["10% off coffee", "Monthly newsletter"],
-      "Gold": ["20% off coffee", "Exclusive events", "Birthday gift"],
-      "Black": ["30% off coffee", "VIP access", "Free delivery", "Birthday gift"]
-    };
 
     async function main() {
       try {
@@ -207,38 +214,29 @@
       const tier = data.tier || "Silver";
       const points = data.points ?? 0;
 
-      const welcomeMsg = document.getElementById("welcomeMsg");
-      welcomeMsg.textContent = `Welcome, ${data.name || currentUser.displayName || data.userId}`;
-      welcomeMsg.style.display = "block";
+      document.getElementById("welcomeMsg").textContent = `Welcome, ${data.name || currentUser.displayName || data.userId}`;
 
       document.getElementById("cardName").textContent = data.name || currentUser.displayName || data.userId;
-
-      animatePoints(points);
-
-      const cardFront = document.getElementById("cardFront");
-      const cardBack = document.getElementById("cardBack");
-
-      cardFront.className = `flip-card-front ${tierClasses[tier]} text-center`;
-      cardBack.className = `flip-card-back ${tierClasses[tier]} text-center`;
-
       document.getElementById("tierBadge").textContent = tier;
 
+      // Apply tier gradient to both sides
+      const cardFront = document.getElementById("cardFront");
+      const cardBack = document.getElementById("cardBack");
+      cardFront.className = "flip-card-front text-center " + (tierClasses[tier] || tierClasses["Silver"]);
+      cardBack.className = "flip-card-back " + (tierClasses[tier] || tierClasses["Silver"]);
+
+      animatePoints(points);
       renderProgress(points);
 
       const badges = (data.badges || "").split(",").map(b => b.trim()).filter(Boolean);
       document.getElementById("cardBadges").innerHTML = badges.map(b => `<span class="badge badge-star text-warning">⭐</span>`).join("");
 
-      const privList = document.getElementById("cardPrivileges");
-      privList.innerHTML = '';
-      (privilegesByTier[tier] || []).forEach(p => {
-        const li = document.createElement('li');
-        li.textContent = p;
-        privList.appendChild(li);
-      });
+      const privileges = (data.privileges || "").split(",").map(p => p.trim()).filter(Boolean);
+      document.getElementById("cardPrivileges").innerHTML = privileges.length ? privileges.join("<br>") : "No privileges yet";
 
-      document.getElementById("loading").style.display = "none";
       document.getElementById("card").style.display = "block";
       document.getElementById("coffeeBtn").style.display = "block";
+      document.getElementById("loading")?.remove();
       document.getElementById("error").textContent = "";
     }
 
@@ -267,7 +265,7 @@
     }
 
     function showError(msg) {
-      document.getElementById("loading").style.display = "none";
+      document.getElementById("loading")?.remove();
       document.getElementById("card").style.display = "none";
       document.getElementById("coffeeBtn").style.display = "none";
       document.getElementById("error").textContent = "Error: " + msg;
@@ -279,5 +277,3 @@
 
 </body>
 </html>
-
-
