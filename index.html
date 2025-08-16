@@ -22,20 +22,20 @@
       font-weight: 700;
     }
 
-    .member-card {
-      border-radius: 1rem;
-      overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      transition: transform 0.3s, box-shadow 0.3s;
-      width: 100%;
-      max-width: 500px;
-      padding: 1.5rem;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      background: #fff;
-      margin-bottom: 1.5rem;
-    }
+.member-card {
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: transform 0.3s, box-shadow 0.3s;
+  width: 100%;
+  max-width: 500px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: #fff;
+  margin-bottom: 1.5rem;
+}
 
     .member-card:hover {
       transform: translateY(-5px);
@@ -60,10 +60,12 @@
       max-width: 500px;
     }
 
-    @media (max-width: 576px) {
-      .member-card {
-        padding: 1rem;
-      }
+   @media (max-width: 576px) {
+  .member-card {
+    width: 90%; /* shrink width on mobile */
+    padding: 1rem;
+  }
+}
       .points { font-size: 1.7rem; }
       #coffeeBtn { width: 100%; margin-top: 1.5rem; }
     }
@@ -229,3 +231,4 @@
   </script>
 </body>
 </html>
+
