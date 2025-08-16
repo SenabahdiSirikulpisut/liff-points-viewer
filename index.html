@@ -29,16 +29,16 @@
     #welcomeMsg {
       font-size: 1.2rem;
       font-weight: 500;
-      margin-bottom: 1rem;
+      margin-bottom: 1.5rem;
       text-align: center;
     }
 
     .flip-card {
-      background-color: transparent;
       width: 100%;
-      max-width: 400px; /* smaller card */
+      max-width: 400px;
       perspective: 1000px;
-      margin-bottom: 1.5rem;
+      margin-bottom: 2rem;
+      min-height: 250px; /* ensures button is below */
     }
 
     .flip-card-inner {
@@ -46,6 +46,7 @@
       width: 100%;
       transition: transform 0.6s;
       transform-style: preserve-3d;
+      height: 100%;
     }
 
     .flip-card.flip .flip-card-inner {
@@ -63,6 +64,7 @@
       flex-direction: column;
       justify-content: space-between;
       color: #fff;
+      height: 100%;
     }
 
     .flip-card-back {
@@ -82,9 +84,10 @@
     .points { 
       font-size: 1.8rem; 
       font-weight: 700; 
+      margin-bottom: 0.5rem;
     }
 
-    .progress { height: 1.5rem; border-radius: 1rem; }
+    .progress { height: 1.5rem; border-radius: 1rem; margin-bottom: 0.5rem; }
     .badge-star { font-size: 1.4rem; margin-right: 2px; }
 
     #coffeeBtn {
@@ -116,9 +119,9 @@
           <span id="cardName" class="fs-5 fw-semibold">Member Name</span>
           <span id="tierBadge" class="badge tier-badge bg-light text-dark">Silver</span>
         </div>
-        <div class="points mb-2">Points: <span id="cardPoints">0</span></div>
-        <div id="cardBadges" class="mb-3"></div>
-        <div class="progress mb-2">
+        <div class="points">Points: <span id="cardPoints">0</span></div>
+        <div id="cardBadges" class="mb-2"></div>
+        <div class="progress">
           <div id="tierProgress" class="progress-bar bg-dark" role="progressbar" style="width: 0%;" aria-valuemin="0" aria-valuemax="100"></div>
         </div>
         <div id="progressText" class="fw-semibold"></div>
@@ -130,6 +133,7 @@
     </div>
   </div>
 
+  <!-- Record Purchase Button -->
   <button id="coffeeBtn" class="btn btn-primary btn-lg" style="display:none;">Record Coffee Purchase</button>
 
   <script>
@@ -279,3 +283,5 @@
 
 </body>
 </html>
+
+
