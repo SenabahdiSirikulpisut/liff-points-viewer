@@ -16,23 +16,27 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding-top: 1rem;
+      padding: 1rem;
     }
 
     h1 {
       font-size: 2.5rem;
       font-weight: 700;
-      margin: 0 auto 1rem auto;
       text-align: center;
-      opacity: 0;
-      transform: translateY(-20px);
-      animation: fadeSlideIn 1s ease forwards;
+      margin-bottom: 0.5rem;
+    }
+
+    #welcomeMsg {
+      font-size: 1.2rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+      text-align: center;
     }
 
     .flip-card {
       background-color: transparent;
       width: 100%;
-      max-width: 500px;
+      max-width: 400px; /* smaller card */
       perspective: 1000px;
       margin-bottom: 1.5rem;
     }
@@ -53,7 +57,7 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
       position: absolute;
       width: 100%;
-      padding: 1.5rem;
+      padding: 1.2rem;
       backface-visibility: hidden;
       display: flex;
       flex-direction: column;
@@ -76,39 +80,30 @@
     }
 
     .points { 
-      font-size: 2rem; 
+      font-size: 1.8rem; 
       font-weight: 700; 
-      opacity: 0; 
-      animation: fadeInText 1s ease 1s forwards; 
     }
 
     .progress { height: 1.5rem; border-radius: 1rem; }
     .badge-star { font-size: 1.4rem; margin-right: 2px; }
 
     #coffeeBtn {
-      max-width: 500px;
-      margin-top: 1.5rem;
+      width: 100%;
+      max-width: 400px;
       margin-bottom: 2rem;
     }
 
     @media (max-width: 576px) {
       .flip-card-front, .flip-card-back { padding: 1rem; }
-      .points { font-size: 1.7rem; }
+      .points { font-size: 1.5rem; }
       #coffeeBtn { width: 100%; }
-    }
-
-    @keyframes fadeSlideIn {
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes fadeInText {
-      to { opacity: 1; }
     }
   </style>
 </head>
 <body>
 
-  <h1 class="mb-3">7-Eleven Membership</h1>
+  <h1>7-Eleven Membership</h1>
+  <div id="welcomeMsg" style="display:none;"></div>
 
   <div id="loading" class="text-secondary mb-3">Loading...</div>
   <div id="error" class="text-danger mb-3"></div>
@@ -136,8 +131,6 @@
   </div>
 
   <button id="coffeeBtn" class="btn btn-primary btn-lg" style="display:none;">Record Coffee Purchase</button>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
     const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzC-XpWbaNvjva6y7QEOhO-rJVlhCn0Q2z3Q6f0XW9jy3R5ugPAQsrsnoi73n4SWCnk/exec";
@@ -214,6 +207,10 @@
       const tier = data.tier || "Silver";
       const points = data.points ?? 0;
 
+      const welcomeMsg = document.getElementById("welcomeMsg");
+      welcomeMsg.textContent = `Welcome, ${data.name || currentUser.displayName || data.userId}`;
+      welcomeMsg.style.display = "block";
+
       document.getElementById("cardName").textContent = data.name || currentUser.displayName || data.userId;
 
       animatePoints(points);
@@ -231,7 +228,6 @@
       const badges = (data.badges || "").split(",").map(b => b.trim()).filter(Boolean);
       document.getElementById("cardBadges").innerHTML = badges.map(b => `<span class="badge badge-star text-warning">⭐</span>`).join("");
 
-      // Render privileges dynamically
       const privList = document.getElementById("cardPrivileges");
       privList.innerHTML = '';
       (privilegesByTier[tier] || []).forEach(p => {
@@ -283,6 +279,5 @@
 
 </body>
 </html>
-
 
 
