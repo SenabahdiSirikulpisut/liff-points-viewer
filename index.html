@@ -1,290 +1,300 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>7-Eleven Membership</title>
-<!-- Bootstrap CSS -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<!-- Google Fonts -->
-<link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@400;700&display=swap" rel="stylesheet">
-<!-- LIFF SDK -->
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>7-Eleven Membership</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@400;700&display=swap" rel="stylesheet">
+  <!-- LIFF SDK -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    body {
+      font-family: 'Oxanium', cursive;
+      background: #f8f9fa;
+      color: #212529;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 2rem;
+    }
 
-<style>
-body {
-  font-family: 'Oxanium', cursive;
-  background: #f8f9fa;
-  color: #212529;
-  overflow-x: hidden;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 2rem 0;
-}
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin: 0 auto 0.5rem auto;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(-20px);
+      animation: fadeSlideIn 1s ease forwards;
+    }
 
-h1 {
-  font-size: 2.5rem;
-  font-weight: 700;
-  opacity: 0;
-  transform: translateY(-20px);
-  animation: fadeSlideIn 1s ease forwards;
-}
+    p {
+      text-align: center;
+      margin: 0 1rem 1.5rem 1rem;
+      opacity: 0;
+      transform: translateY(-10px);
+      animation: fadeSlideIn 1s ease 0.3s forwards;
+    }
 
-#welcomeMsg {
-  margin-bottom: 1rem;
-  font-weight: 700;
-  opacity: 0;
-  transform: translateY(-10px);
-  animation: fadeSlideIn 1s ease 0.3s forwards;
-}
+    .flip-card {
+      background-color: transparent;
+      width: 100%;
+      max-width: 500px;
+      perspective: 1000px;
+      margin-bottom: 1.5rem;
+    }
 
-/* Flip card container */
-.member-card-container {
-  perspective: 1000px;
-  width: 100%;
-  max-width: 500px;
-  height: 300px; /* adjust height */
-  margin-top: 1rem;
-  position: relative;
-}
+    .flip-card-inner {
+      position: relative;
+      width: 100%;
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+    }
 
-.member-card {
-  width: 100%;
-  height: 100%;
-  border-radius: 1rem;
-  transition: transform 0.8s;
-  transform-style: preserve-3d;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
+    .flip-card:hover .flip-card-inner,
+    .flip-card.flip .flip-card-inner {
+      transform: rotateY(180deg);
+    }
 
-.member-card:hover {
-  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-}
+    .flip-card-front, .flip-card-back {
+      border-radius: 1rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      position: absolute;
+      width: 100%;
+      padding: 1.5rem;
+      backface-visibility: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      color: #fff;
+    }
 
-.card-front, .card-back {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  backface-visibility: hidden;
-  border-radius: 1rem;
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
+    .tier-silver { background: linear-gradient(135deg, #e0e0e0, #c0c0c0); color: #333; }
+    .tier-gold { background: linear-gradient(135deg, #FFD700, #E6B800); color: #222; }
+    .tier-black { background: linear-gradient(135deg, #080707, #1a1a1a); color: #fff; }
 
-.card-front {
-  background: #fff;
-  color: #212529;
-}
+    .flip-card-back {
+      transform: rotateY(180deg);
+    }
 
-.tier-silver { background: linear-gradient(135deg, #e0e0e0, #c0c0c0); color: #333; }
-.tier-gold { background: linear-gradient(135deg, #FFD700, #E6B800); color: #222; }
-.tier-black { background: linear-gradient(135deg, #080707, #1a1a1a); color: #fff; }
+    .tier-badge {
+      font-weight: 700;
+      font-size: 0.9rem;
+      padding: 0.3rem 0.6rem;
+    }
 
-.card-back {
-  background: #f1f1f1;
-  transform: rotateY(180deg);
-  color: #212529;
-}
+    .points { font-size: 2rem; font-weight: 700; opacity: 0; animation: fadeInText 1s ease 1s forwards; }
+    .progress { height: 1.5rem; border-radius: 1rem; }
+    .badge-star { font-size: 1.4rem; margin-right: 2px; }
 
-.member-card.flipped {
-  transform: rotateY(180deg);
-}
+    #coffeeBtn {
+      max-width: 500px;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeSlideIn 1s ease 1.2s forwards;
+    }
 
-.tier-badge {
-  font-weight: 700;
-  font-size: 0.9rem;
-  padding: 0.3rem 0.6rem;
-}
+    @media (max-width: 576px) {
+      .flip-card-front, .flip-card-back { padding: 1rem; }
+      .points { font-size: 1.7rem; }
+      #coffeeBtn { width: 100%; margin-top: 1.5rem; }
+    }
 
-.points {
-  font-size: 2rem;
-  font-weight: 700;
-}
+    /* Animations */
+    @keyframes fadeSlideIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-.progress { height: 1.5rem; border-radius: 1rem; }
-
-.badge-star { font-size: 1.4rem; margin-right: 2px; }
-
-#coffeeBtn {
-  max-width: 500px;
-  margin-top: 1rem;
-}
-
-@media (max-width: 576px) {
-  .member-card-container { height: 280px; }
-  .points { font-size: 1.7rem; }
-  #coffeeBtn { width: 100%; }
-}
-
-/* Animations */
-@keyframes fadeSlideIn {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-</style>
+    @keyframes fadeInText {
+      to { opacity: 1; }
+    }
+  </style>
 </head>
-
 <body>
-<h1>7-Eleven Membership</h1>
-<div id="welcomeMsg"></div>
-<div id="loading" class="text-secondary mb-3">Loading...</div>
-<div id="error" class="text-danger mb-3"></div>
 
-<div class="member-card-container" style="display:none;" id="cardContainer">
-  <div class="member-card" id="memberCard">
-    <!-- Front -->
-    <div class="card-front" id="cardFront">
-      <div class="d-flex justify-content-between align-items-center mb-2">
-        <span id="cardName">Member Name</span>
-        <span id="tierBadge" class="badge tier-badge bg-light text-dark">Silver</span>
+  <h1 class="mb-3">7-Eleven Membership</h1>
+  <p class="text-secondary mb-4">Welcome to your membership dashboard</p>
+
+  <div id="loading" class="text-secondary mb-3">Loading...</div>
+  <div id="error" class="text-danger mb-3"></div>
+
+  <div id="welcomeMsg" class="mb-3 fs-5 fw-bold text-center" style="display:none;"></div>
+
+  <!-- Flip Card -->
+  <div id="card" class="flip-card" style="display:none;" onclick="this.classList.toggle('flip')">
+    <div class="flip-card-inner">
+      <div id="cardFront" class="flip-card-front tier-silver text-center">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span id="cardName" class="fs-5 fw-semibold">Member Name</span>
+          <span id="tierBadge" class="badge tier-badge bg-light text-dark">Silver</span>
+        </div>
+        <div class="points mb-2">Points: <span id="cardPoints">0</span></div>
+        <div id="cardBadges" class="mb-3"></div>
+        <div class="progress mb-2">
+          <div id="tierProgress" class="progress-bar bg-dark" role="progressbar" style="width: 0%;" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <div id="progressText" class="fw-semibold"></div>
       </div>
-      <div class="points mb-2">Points: <span id="cardPoints">0</span></div>
-      <div id="cardBadges" class="mb-3"></div>
-      <div class="progress mb-2">
-        <div id="tierProgress" class="progress-bar bg-dark" role="progressbar" style="width: 0%;"></div>
+      <div id="cardBack" class="flip-card-back tier-silver text-center">
+        <h5>Privileges</h5>
+        <ul id="cardPrivileges" class="list-unstyled mb-0"></ul>
       </div>
-      <div id="progressText"></div>
-    </div>
-    <!-- Back -->
-    <div class="card-back" id="cardBack">
-      <h5>Privileges</h5>
-      <ul id="privilegesList"></ul>
     </div>
   </div>
-</div>
 
-<button id="coffeeBtn" class="btn btn-primary btn-lg" style="display:none;">Record Coffee Purchase</button>
+  <button id="coffeeBtn" class="btn btn-primary btn-lg mt-3" style="display:none;">Record Coffee Purchase</button>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzC-XpWbaNvjva6y7QEOhO-rJVlhCn0Q2z3Q6f0XW9jy3R5ugPAQsrsnoi73n4SWCnk/exec";
-const LIFF_ID = "2007890960-Yjq6VQWo";
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-let currentUser = { userId: null, displayName: null };
-const tierClasses = { "Silver":"tier-silver", "Gold":"tier-gold", "Black":"tier-black" };
+  <script>
+    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzC-XpWbaNvjva6y7QEOhO-rJVlhCn0Q2z3Q6f0XW9jy3R5ugPAQsrsnoi73n4SWCnk/exec";
+    const LIFF_ID = "2007890960-Yjq6VQWo";
 
-// Main
-async function main() {
-  try {
-    await liff.init({ liffId: LIFF_ID });
-    if (!liff.isLoggedIn()) { liff.login(); return; }
-    const profile = await liff.getProfile();
-    currentUser.userId = profile.userId;
-    currentUser.displayName = profile.displayName || "";
-    await fetchAndRender();
-    
-    const coffeeBtn = document.getElementById("coffeeBtn");
-    coffeeBtn.style.display = "block";
-    coffeeBtn.onclick = async () => {
-      const password = prompt("Enter password to record coffee purchase:");
-      if (!password) return;
-      await recordCoffeePurchase(password);
+    let currentUser = { userId: null, displayName: null };
+    const tierClasses = { "Silver":"tier-silver", "Gold":"tier-gold", "Black":"tier-black" };
+    const privilegesByTier = {
+      "Silver": ["10% off coffee", "Monthly newsletter"],
+      "Gold": ["20% off coffee", "Exclusive events", "Birthday gift"],
+      "Black": ["30% off coffee", "VIP access", "Free delivery", "Birthday gift"]
     };
 
-    // Flip card on click
-    const card = document.getElementById("memberCard");
-    card.onclick = () => card.classList.toggle("flipped");
+    async function main() {
+      try {
+        await liff.init({ liffId: LIFF_ID });
+        if (!liff.isLoggedIn()) { liff.login(); return; }
 
-  } catch(err) { showError(err.message || String(err)); }
-}
+        const profile = await liff.getProfile();
+        currentUser.userId = profile.userId;
+        currentUser.displayName = profile.displayName || "";
 
-// Fetch data
-async function fetchAndRender() {
-  try {
-    const res = await fetch(BACKEND_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ userId: currentUser.userId, name: currentUser.displayName })
-    });
-    if(!res.ok) throw new Error("Network response not ok: " + res.status);
-    const data = await res.json();
-    if(data.error) { showError(data.error); return; }
-    renderUserData(data);
-  } catch(err) { showError(err.message || String(err)); }
-}
+        await fetchAndRender();
 
-// Record coffee purchase
-async function recordCoffeePurchase(password) {
-  try {
-    const res = await fetch(BACKEND_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ userId: currentUser.userId, name: currentUser.displayName, action:"coffee_purchase", password })
-    });
-    if(!res.ok) throw new Error("Network response not ok: " + res.status);
-    const data = await res.json();
-    if(data.error){ alert("Error: " + data.error); return; }
-    renderUserData(data);
-    alert("Coffee purchase recorded! Points updated.");
-  } catch(err) { alert("Failed: "+err.message); console.error(err); }
-}
+        const coffeeBtn = document.getElementById("coffeeBtn");
+        coffeeBtn.style.display = "block";
+        coffeeBtn.onclick = async () => {
+          const password = prompt("Enter password to record coffee purchase:");
+          if (!password) return;
+          await recordCoffeePurchase(password);
+        };
 
-// Render data
-function renderUserData(data){
-  const tier = data.tier || "Silver";
-  const points = data.points ?? 0;
-  const privileges = data.privileges || ["No privileges yet"];
-  
-  document.getElementById("welcomeMsg").textContent = `Welcome, ${data.name || currentUser.displayName || data.userId}`;
-  document.getElementById("cardName").textContent = data.name || currentUser.displayName || data.userId;
-  document.getElementById("tierBadge").textContent = tier;
-  document.getElementById("cardContainer").style.display = "block";
-  document.getElementById("memberCard").className = "member-card " + (tierClasses[tier] || tierClasses["Silver"]);
-  animatePoints(points);
-  renderProgress(points);
+      } catch (err) { showError(err.message || String(err)); }
+    }
 
-  // Badges
-  const badges = (data.badges||"").split(",").map(b=>b.trim()).filter(Boolean);
-  document.getElementById("cardBadges").innerHTML = badges.map(b=>`<span class="badge badge-star text-warning">⭐</span>`).join("");
+    async function fetchAndRender() {
+      try {
+        const res = await fetch(BACKEND_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ userId: currentUser.userId, name: currentUser.displayName })
+        });
+        if (!res.ok) throw new Error("Network response not ok: " + res.status);
+        const data = await res.json();
+        if (data.error) { showError(data.error); return; }
+        renderUserData(data);
+      } catch (err) { showError(err.message || String(err)); }
+    }
 
-  // Privileges list (back)
-  const ul = document.getElementById("privilegesList");
-  ul.innerHTML = "";
-  privileges.forEach(p => { const li = document.createElement("li"); li.textContent = p; ul.appendChild(li); });
+    async function recordCoffeePurchase(password) {
+      try {
+        const res = await fetch(BACKEND_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ 
+            userId: currentUser.userId, 
+            name: currentUser.displayName, 
+            action: "coffee_purchase",
+            password
+          })
+        });
+        if (!res.ok) throw new Error("Network response not ok: " + res.status);
+        const data = await res.json();
+        if (data.error) { alert("Error: " + data.error); return; }
+        renderUserData(data);
+        alert("Coffee purchase recorded! Points updated.");
+      } catch (err) {
+        alert("Failed to record purchase: " + err.message);
+        console.error(err);
+      }
+    }
 
-  document.getElementById("loading").style.display = "none";
-}
+    function renderUserData(data) {
+      const tier = data.tier || "Silver";
+      const points = data.points ?? 0;
 
-// Animate points
-function animatePoints(newPoints){
-  const el = document.getElementById("cardPoints");
-  let current = Number(el.textContent);
-  const step = (newPoints - current)/20;
-  let i=0;
-  const interval = setInterval(()=>{
-    if(i++>=20){ el.textContent = newPoints; clearInterval(interval); }
-    else el.textContent = Math.round(current + step*i);
-  },20);
-}
+      document.getElementById("welcomeMsg").textContent = `Welcome, ${data.name || currentUser.displayName || data.userId}`;
+      document.getElementById("welcomeMsg").style.display = "block";
 
-// Render progress bar
-function renderProgress(points){
-  const progressBar = document.getElementById("tierProgress");
-  let percent = Math.min(points,100);
-  progressBar.style.width = percent+"%";
+      document.getElementById("cardName").textContent = data.name || currentUser.displayName || data.userId;
 
-  let nextTierPoints = 0;
-  if(points<50) nextTierPoints=50-points;
-  else if(points<100) nextTierPoints=100-points;
-  else nextTierPoints=0;
-  document.getElementById("progressText").textContent = nextTierPoints>0?`${nextTierPoints} points to next tier`:'Max tier reached';
-}
+      animatePoints(points);
 
-function showError(msg){
-  document.getElementById("loading").style.display="none";
-  document.getElementById("cardContainer").style.display="none";
-  document.getElementById("coffeeBtn").style.display="none";
-  document.getElementById("error").textContent = "Error: " + msg;
-  console.error(msg);
-}
+      const cardFront = document.getElementById("cardFront");
+      const cardBack = document.getElementById("cardBack");
 
-main();
-</script>
+      cardFront.className = `flip-card-front ${tierClasses[tier]} text-center`;
+      cardBack.className = `flip-card-back ${tierClasses[tier]} text-center`;
+
+      document.getElementById("tierBadge").textContent = tier;
+
+      renderProgress(points);
+
+      const badges = (data.badges || "").split(",").map(b => b.trim()).filter(Boolean);
+      document.getElementById("cardBadges").innerHTML = badges.map(b => `<span class="badge badge-star text-warning">⭐</span>`).join("");
+
+      // Render privileges dynamically
+      const privList = document.getElementById("cardPrivileges");
+      privList.innerHTML = '';
+      (privilegesByTier[tier] || []).forEach(p => {
+        const li = document.createElement('li');
+        li.textContent = p;
+        privList.appendChild(li);
+      });
+
+      document.getElementById("loading").style.display = "none";
+      document.getElementById("card").style.display = "block";
+      document.getElementById("coffeeBtn").style.display = "block";
+      document.getElementById("error").textContent = "";
+    }
+
+    function animatePoints(newPoints) {
+      const el = document.getElementById("cardPoints");
+      let current = Number(el.textContent);
+      const step = (newPoints - current) / 20;
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i++ >= 20) { el.textContent = newPoints; clearInterval(interval); }
+        else el.textContent = Math.round(current + step * i);
+      }, 20);
+    }
+
+    function renderProgress(points) {
+      const progressBar = document.getElementById("tierProgress");
+      let percent = Math.min(points, 100);
+      progressBar.style.width = percent + "%";
+
+      let nextTierPoints = 0;
+      if (points < 50) nextTierPoints = 50 - points;
+      else if (points < 100) nextTierPoints = 100 - points;
+      else nextTierPoints = 0;
+
+      document.getElementById("progressText").textContent = nextTierPoints > 0 ? `${nextTierPoints} points to next tier` : 'Max tier reached';
+    }
+
+    function showError(msg) {
+      document.getElementById("loading").style.display = "none";
+      document.getElementById("card").style.display = "none";
+      document.getElementById("coffeeBtn").style.display = "none";
+      document.getElementById("error").textContent = "Error: " + msg;
+      console.error(msg);
+    }
+
+    main();
+  </script>
+
 </body>
 </html>
