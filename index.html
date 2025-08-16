@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@400;700&display=swap" rel="stylesheet">
 <!-- LIFF SDK -->
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
 <style>
 body {
   font-family: 'Oxanium', cursive;
@@ -19,66 +20,79 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 2rem 1rem;
+  padding: 2rem 0;
 }
 
 h1 {
   font-size: 2.5rem;
   font-weight: 700;
-  margin-bottom: 0.5rem;
+  opacity: 0;
+  transform: translateY(-20px);
+  animation: fadeSlideIn 1s ease forwards;
 }
 
+#welcomeMsg {
+  margin-bottom: 1rem;
+  font-weight: 700;
+  opacity: 0;
+  transform: translateY(-10px);
+  animation: fadeSlideIn 1s ease 0.3s forwards;
+}
+
+/* Flip card container */
 .member-card-container {
   perspective: 1000px;
   width: 100%;
   max-width: 500px;
+  height: 300px; /* adjust height */
   margin-top: 1rem;
+  position: relative;
 }
 
 .member-card {
   width: 100%;
+  height: 100%;
   border-radius: 1rem;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  transition: transform 0.3s, box-shadow 0.3s;
+  transition: transform 0.8s;
   transform-style: preserve-3d;
   cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
-.member-card.flip {
-  transform: rotateY(180deg);
+.member-card:hover {
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
 }
 
 .card-front, .card-back {
-  backface-visibility: hidden;
   position: absolute;
   width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 1rem;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  border-radius: 1rem;
 }
 
 .card-front {
   background: #fff;
-  z-index: 2;
-}
-
-.card-back {
-  background: #f1f1f1;
-  transform: rotateY(180deg);
-  text-align: center;
-}
-
-.member-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+  color: #212529;
 }
 
 .tier-silver { background: linear-gradient(135deg, #e0e0e0, #c0c0c0); color: #333; }
 .tier-gold { background: linear-gradient(135deg, #FFD700, #E6B800); color: #222; }
 .tier-black { background: linear-gradient(135deg, #080707, #1a1a1a); color: #fff; }
+
+.card-back {
+  background: #f1f1f1;
+  transform: rotateY(180deg);
+  color: #212529;
+}
+
+.member-card.flipped {
+  transform: rotateY(180deg);
+}
 
 .tier-badge {
   font-weight: 700;
@@ -86,7 +100,10 @@ h1 {
   padding: 0.3rem 0.6rem;
 }
 
-.points { font-size: 2rem; font-weight: 700; }
+.points {
+  font-size: 2rem;
+  font-weight: 700;
+}
 
 .progress { height: 1.5rem; border-radius: 1rem; }
 
@@ -94,62 +111,57 @@ h1 {
 
 #coffeeBtn {
   max-width: 500px;
-  margin-top: 1.5rem;
+  margin-top: 1rem;
 }
 
 @media (max-width: 576px) {
-  .member-card, .card-front, .card-back {
-    width: 90%;
-    padding: 1rem;
-  }
+  .member-card-container { height: 280px; }
   .points { font-size: 1.7rem; }
   #coffeeBtn { width: 100%; }
 }
+
+/* Animations */
+@keyframes fadeSlideIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 </style>
 </head>
+
 <body>
-
-<h1 class="text-center">7-Eleven Membership</h1>
-
+<h1>7-Eleven Membership</h1>
+<div id="welcomeMsg"></div>
 <div id="loading" class="text-secondary mb-3">Loading...</div>
 <div id="error" class="text-danger mb-3"></div>
-<div id="welcomeMsg" class="mb-3 fs-5 fw-bold text-center" style="display:none;"></div>
 
-<!-- Member Card Container -->
-<div class="member-card-container" id="cardContainer" style="display:none;">
+<div class="member-card-container" style="display:none;" id="cardContainer">
   <div class="member-card" id="memberCard">
-
-    <!-- Front Side -->
-    <div class="card-front member-card text-center">
+    <!-- Front -->
+    <div class="card-front" id="cardFront">
       <div class="d-flex justify-content-between align-items-center mb-2">
-        <span id="cardName" class="fs-5 fw-semibold">Member Name</span>
+        <span id="cardName">Member Name</span>
         <span id="tierBadge" class="badge tier-badge bg-light text-dark">Silver</span>
       </div>
       <div class="points mb-2">Points: <span id="cardPoints">0</span></div>
       <div id="cardBadges" class="mb-3"></div>
       <div class="progress mb-2">
-        <div id="tierProgress" class="progress-bar bg-dark" role="progressbar" style="width: 0%;" aria-valuemin="0" aria-valuemax="100"></div>
+        <div id="tierProgress" class="progress-bar bg-dark" role="progressbar" style="width: 0%;"></div>
       </div>
-      <div id="progressText" class="fw-semibold"></div>
-      <div class="mt-2 text-muted small">(Tap card to view privileges)</div>
+      <div id="progressText"></div>
     </div>
-
-    <!-- Back Side -->
-    <div class="card-back member-card text-center">
-      <h4 class="fw-bold">Privileges</h4>
-      <ul id="privilegeList" class="list-unstyled mt-3"></ul>
-      <div class="mt-3 text-muted small">(Tap to flip back)</div>
+    <!-- Back -->
+    <div class="card-back" id="cardBack">
+      <h5>Privileges</h5>
+      <ul id="privilegesList"></ul>
     </div>
-
   </div>
 </div>
 
-<!-- Record Purchase Button -->
 <button id="coffeeBtn" class="btn btn-primary btn-lg" style="display:none;">Record Coffee Purchase</button>
 
-<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
 const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzC-XpWbaNvjva6y7QEOhO-rJVlhCn0Q2z3Q6f0XW9jy3R5ugPAQsrsnoi73n4SWCnk/exec";
 const LIFF_ID = "2007890960-Yjq6VQWo";
@@ -157,17 +169,16 @@ const LIFF_ID = "2007890960-Yjq6VQWo";
 let currentUser = { userId: null, displayName: null };
 const tierClasses = { "Silver":"tier-silver", "Gold":"tier-gold", "Black":"tier-black" };
 
+// Main
 async function main() {
   try {
     await liff.init({ liffId: LIFF_ID });
     if (!liff.isLoggedIn()) { liff.login(); return; }
-
     const profile = await liff.getProfile();
     currentUser.userId = profile.userId;
     currentUser.displayName = profile.displayName || "";
-
     await fetchAndRender();
-
+    
     const coffeeBtn = document.getElementById("coffeeBtn");
     coffeeBtn.style.display = "block";
     coffeeBtn.onclick = async () => {
@@ -176,15 +187,14 @@ async function main() {
       await recordCoffeePurchase(password);
     };
 
-    // Flip card on tap
-    const memberCard = document.getElementById("memberCard");
-    memberCard.addEventListener("click", () => {
-      memberCard.classList.toggle("flip");
-    });
+    // Flip card on click
+    const card = document.getElementById("memberCard");
+    card.onclick = () => card.classList.toggle("flipped");
 
-  } catch (err) { showError(err.message || String(err)); }
+  } catch(err) { showError(err.message || String(err)); }
 }
 
+// Fetch data
 async function fetchAndRender() {
   try {
     const res = await fetch(BACKEND_URL, {
@@ -192,100 +202,84 @@ async function fetchAndRender() {
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify({ userId: currentUser.userId, name: currentUser.displayName })
     });
-    if (!res.ok) throw new Error("Network response not ok: " + res.status);
+    if(!res.ok) throw new Error("Network response not ok: " + res.status);
     const data = await res.json();
-    if (data.error) { showError(data.error); return; }
+    if(data.error) { showError(data.error); return; }
     renderUserData(data);
-  } catch (err) { showError(err.message || String(err)); }
+  } catch(err) { showError(err.message || String(err)); }
 }
 
+// Record coffee purchase
 async function recordCoffeePurchase(password) {
   try {
     const res = await fetch(BACKEND_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ 
-        userId: currentUser.userId, 
-        name: currentUser.displayName, 
-        action: "coffee_purchase",
-        password
-      })
+      body: JSON.stringify({ userId: currentUser.userId, name: currentUser.displayName, action:"coffee_purchase", password })
     });
-    if (!res.ok) throw new Error("Network response not ok: " + res.status);
+    if(!res.ok) throw new Error("Network response not ok: " + res.status);
     const data = await res.json();
-    if (data.error) { alert("Error: " + data.error); return; }
+    if(data.error){ alert("Error: " + data.error); return; }
     renderUserData(data);
     alert("Coffee purchase recorded! Points updated.");
-  } catch (err) {
-    alert("Failed to record purchase: " + err.message);
-    console.error(err);
-  }
+  } catch(err) { alert("Failed: "+err.message); console.error(err); }
 }
 
-function renderUserData(data) {
+// Render data
+function renderUserData(data){
   const tier = data.tier || "Silver";
   const points = data.points ?? 0;
-
-  document.getElementById("welcomeMsg").textContent = `Welcome, ${data.name || currentUser.displayName}`;
-  document.getElementById("welcomeMsg").style.display = "block";
-
-  document.getElementById("cardName").textContent = data.name || currentUser.displayName;
-  animatePoints(points);
-
-  // Tier color
-  const front = document.querySelector(".card-front");
-  front.className = "card-front member-card text-center " + (tierClasses[tier] || tierClasses["Silver"]);
+  const privileges = data.privileges || ["No privileges yet"];
+  
+  document.getElementById("welcomeMsg").textContent = `Welcome, ${data.name || currentUser.displayName || data.userId}`;
+  document.getElementById("cardName").textContent = data.name || currentUser.displayName || data.userId;
   document.getElementById("tierBadge").textContent = tier;
-
+  document.getElementById("cardContainer").style.display = "block";
+  document.getElementById("memberCard").className = "member-card " + (tierClasses[tier] || tierClasses["Silver"]);
+  animatePoints(points);
   renderProgress(points);
 
   // Badges
-  const badges = (data.badges || "").split(",").map(b => b.trim()).filter(Boolean);
-  document.getElementById("cardBadges").innerHTML = badges.map(b => `<span class="badge badge-star text-warning">⭐</span>`).join("");
+  const badges = (data.badges||"").split(",").map(b=>b.trim()).filter(Boolean);
+  document.getElementById("cardBadges").innerHTML = badges.map(b=>`<span class="badge badge-star text-warning">⭐</span>`).join("");
 
-  // Populate privileges dynamically
-  const privilegeList = document.getElementById("privilegeList");
-  privilegeList.innerHTML = "";
-  if (data.privileges && data.privileges.length > 0) {
-    data.privileges.forEach(p => {
-      const li = document.createElement("li");
-      li.textContent = "☑ " + p;
-      privilegeList.appendChild(li);
-    });
-  }
+  // Privileges list (back)
+  const ul = document.getElementById("privilegesList");
+  ul.innerHTML = "";
+  privileges.forEach(p => { const li = document.createElement("li"); li.textContent = p; ul.appendChild(li); });
 
   document.getElementById("loading").style.display = "none";
-  document.getElementById("cardContainer").style.display = "block";
 }
 
-function animatePoints(newPoints) {
+// Animate points
+function animatePoints(newPoints){
   const el = document.getElementById("cardPoints");
   let current = Number(el.textContent);
-  const step = (newPoints - current) / 20;
-  let i = 0;
-  const interval = setInterval(() => {
-    if (i++ >= 20) { el.textContent = newPoints; clearInterval(interval); }
-    else el.textContent = Math.round(current + step * i);
-  }, 20);
+  const step = (newPoints - current)/20;
+  let i=0;
+  const interval = setInterval(()=>{
+    if(i++>=20){ el.textContent = newPoints; clearInterval(interval); }
+    else el.textContent = Math.round(current + step*i);
+  },20);
 }
 
-function renderProgress(points) {
+// Render progress bar
+function renderProgress(points){
   const progressBar = document.getElementById("tierProgress");
-  let percent = Math.min(points, 100);
-  progressBar.style.width = percent + "%";
+  let percent = Math.min(points,100);
+  progressBar.style.width = percent+"%";
 
   let nextTierPoints = 0;
-  if (points < 50) nextTierPoints = 50 - points;
-  else if (points < 100) nextTierPoints = 100 - points;
-  else nextTierPoints = 0;
-
-  document.getElementById("progressText").textContent = nextTierPoints > 0 ? `${nextTierPoints} points to next tier` : 'Max tier reached';
+  if(points<50) nextTierPoints=50-points;
+  else if(points<100) nextTierPoints=100-points;
+  else nextTierPoints=0;
+  document.getElementById("progressText").textContent = nextTierPoints>0?`${nextTierPoints} points to next tier`:'Max tier reached';
 }
 
-function showError(msg) {
-  document.getElementById("loading").style.display = "none";
-  document.getElementById("cardContainer").style.display = "none";
-  document.getElementById("coffeeBtn").style.display = "none";
+function showError(msg){
+  document.getElementById("loading").style.display="none";
+  document.getElementById("cardContainer").style.display="none";
+  document.getElementById("coffeeBtn").style.display="none";
   document.getElementById("error").textContent = "Error: " + msg;
   console.error(msg);
 }
@@ -294,4 +288,3 @@ main();
 </script>
 </body>
 </html>
-
