@@ -17,28 +17,24 @@
       align-items: center;
       padding: 1rem;
     }
-
     h1 {
       font-size: 2.5rem;
       font-weight: 700;
       text-align: center;
       margin-bottom: 0.5rem;
     }
-
     #welcomeMsg {
       font-size: 1.2rem;
       font-weight: 500;
       margin-bottom: 1rem;
       text-align: center;
     }
-
     .flip-card {
       width: 100%;
       max-width: 400px;
       perspective: 1000px;
       margin-bottom: 2rem;
     }
-
     .flip-card-inner {
       position: relative;
       width: 100%;
@@ -46,11 +42,7 @@
       transition: transform 0.6s;
       transform-style: preserve-3d;
     }
-
-    .flip-card.flip .flip-card-inner {
-      transform: rotateY(180deg);
-    }
-
+    .flip-card.flip .flip-card-inner { transform: rotateY(180deg); }
     .flip-card-front, .flip-card-back {
       position: absolute;
       width: 100%;
@@ -64,195 +56,202 @@
       justify-content: space-between;
       color: #fff;
     }
-
     .flip-card-back { transform: rotateY(180deg); }
-
     .tier-silver { background: linear-gradient(135deg, #e0e0e0, #c0c0c0); color: #333; }
     .tier-gold { background: linear-gradient(135deg, #FFD700, #E6B800); color: #222; }
     .tier-black { background: linear-gradient(135deg, #080707, #1a1a1a); color: #fff; }
-
     .tier-badge { font-weight: 700; font-size: 0.9rem; padding: 0.3rem 0.6rem; }
     .points { font-size: 1.8rem; font-weight: 700; }
     .progress { height: 1.5rem; border-radius: 1rem; }
     .badge-star { font-size: 1.4rem; margin-right: 2px; }
-
-    .purchase-buttons {
-      width: 100%;
-      max-width: 400px;
+    #buttonsContainer {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
     }
-    .purchase-buttons .btn {
-      font-size: 1.1rem;
-      padding: 1rem;
-      width: 100%;
-      border-radius: 0.75rem;
+    .button-column {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
     }
-
+    .action-btn { min-width: 120px; font-size: 1rem; padding: 0.8rem; }
     @media (max-width: 576px) {
       .flip-card-front, .flip-card-back { padding: 1rem; }
       .points { font-size: 1.5rem; }
+      .action-btn { width: 100%; text-align: center; }
     }
   </style>
 </head>
 <body>
 
-  <h1>7-Eleven Membership</h1>
-  <div id="welcomeMsg" style="display:none;"></div>
+<h1>7-Eleven Membership</h1>
+<div id="welcomeMsg" style="display:none;"></div>
 
-  <div id="loading" class="text-secondary mb-3">Loading...</div>
-  <div id="error" class="text-danger mb-3"></div>
+<div id="loading" class="text-secondary mb-3">Loading...</div>
+<div id="error" class="text-danger mb-3"></div>
 
-  <!-- Flip Card -->
-  <div id="card" class="flip-card" style="display:none;" onclick="this.classList.toggle('flip')">
-    <div class="flip-card-inner">
-      <div id="cardFront" class="flip-card-front tier-silver text-center">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <span id="cardName" class="fs-5 fw-semibold">Member Name</span>
-          <span id="tierBadge" class="badge tier-badge bg-light text-dark">Silver</span>
-        </div>
-        <div class="points mb-2">Points: <span id="cardPoints">0</span></div>
-        <div id="cardBadges" class="mb-3"></div>
-        <div class="progress mb-2">
-          <div id="tierProgress" class="progress-bar bg-dark" role="progressbar" style="width: 0%;"></div>
-        </div>
-        <div id="progressText" class="fw-semibold"></div>
+<!-- Flip Card -->
+<div id="card" class="flip-card" style="display:none;" onclick="this.classList.toggle('flip')">
+  <div class="flip-card-inner">
+    <div id="cardFront" class="flip-card-front tier-silver text-center">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span id="cardName" class="fs-5 fw-semibold">Member Name</span>
+        <span id="tierBadge" class="badge tier-badge bg-light text-dark">Silver</span>
       </div>
-      <div id="cardBack" class="flip-card-back tier-silver text-center">
-        <h5>Privileges</h5>
-        <ul id="cardPrivileges" class="list-unstyled mb-0"></ul>
+      <div class="points mb-2">Points: <span id="cardPoints">0</span></div>
+      <div id="cardBadges" class="mb-3"></div>
+      <div class="progress mb-2">
+        <div id="tierProgress" class="progress-bar bg-dark" role="progressbar" style="width: 0%;" aria-valuemin="0" aria-valuemax="100"></div>
       </div>
+      <div id="progressText" class="fw-semibold"></div>
+    </div>
+    <div id="cardBack" class="flip-card-back tier-silver text-center">
+      <h5>Privileges</h5>
+      <ul id="cardPrivileges" class="list-unstyled mb-0"></ul>
     </div>
   </div>
+</div>
 
-  <!-- Purchase Buttons -->
-  <div class="purchase-buttons row g-2" style="display:none;">
-    <div class="col-6 d-flex flex-column gap-2">
-      <button class="btn btn-success" onclick="recordPurchase(5)">All Cafe (+5)</button>
-      <button class="btn btn-warning" onclick="recordPurchase(10)">All Select (+10)</button>
-    </div>
-    <div class="col-6 d-flex flex-column gap-2">
-      <button class="btn btn-danger" onclick="recordPurchase(15)">+ Bakery (+15)</button>
-      <button class="btn btn-info" onclick="recordPurchase(15)">+ Food Box (+15)</button>
-    </div>
+<!-- Action Buttons -->
+<div id="buttonsContainer">
+  <div class="button-column">
+    <button class="btn btn-primary action-btn" onclick="recordAction('coffee', 5)">All Cafe (+5)</button>
+    <button class="btn btn-primary action-btn" onclick="recordAction('select', 10)">All Select (+10)</button>
   </div>
+  <div class="button-column">
+    <button class="btn btn-success action-btn" onclick="recordAction('bakery', 15)">+ Bakery (+15)</button>
+    <button class="btn btn-success action-btn" onclick="recordAction('foodbox', 15)">+ Food Box (+15)</button>
+  </div>
+</div>
 
-  <script>
-    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzC-XpWbaNvjva6y7QEOhO-rJVlhCn0Q2z3Q6f0XW9jy3R5ugPAQsrsnoi73n4SWCnk/exec";
-    const LIFF_ID = "2007890960-Yjq6VQWo";
+<script>
+const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzC-XpWbaNvjva6y7QEOhO-rJVlhCn0Q2z3Q6f0XW9jy3R5ugPAQsrsnoi73n4SWCnk/exec";
+const LIFF_ID = "2007890960-Yjq6VQWo";
 
-    let currentUser = { userId: null, displayName: null };
-    const tierClasses = { "Silver":"tier-silver", "Gold":"tier-gold", "Black":"tier-black" };
-    const privilegesByTier = {
-      "Silver": ["10% off coffee", "Monthly newsletter"],
-      "Gold": ["20% off coffee", "Exclusive events", "Birthday gift"],
-      "Black": ["30% off coffee", "VIP access", "Free delivery", "Birthday gift"]
-    };
+let currentUser = { userId: null, displayName: null };
+const tierClasses = { "Silver":"tier-silver", "Gold":"tier-gold", "Black":"tier-black" };
+const privilegesByTier = {
+  "Silver": ["10% off coffee", "Monthly newsletter"],
+  "Gold": ["20% off coffee", "Exclusive events", "Birthday gift"],
+  "Black": ["30% off coffee", "VIP access", "Free delivery", "Birthday gift"]
+};
 
-    async function main() {
-      try {
-        await liff.init({ liffId: LIFF_ID });
-        if (!liff.isLoggedIn()) { liff.login(); return; }
+// Main function
+async function main() {
+  try {
+    await liff.init({ liffId: LIFF_ID });
+    if (!liff.isLoggedIn()) { liff.login(); return; }
+    const profile = await liff.getProfile();
+    currentUser.userId = profile.userId;
+    currentUser.displayName = profile.displayName || "";
+    await fetchAndRender();
+  } catch (err) { showError(err.message || String(err)); }
+}
 
-        const profile = await liff.getProfile();
-        currentUser.userId = profile.userId;
-        currentUser.displayName = profile.displayName || "";
+// Record any button action
+async function recordAction(action, points) {
+  const password = prompt(`Enter password for ${action} purchase:`);
+  if (!password) return;
+  try {
+    const res = await fetch(BACKEND_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ 
+        userId: currentUser.userId,
+        name: currentUser.displayName,
+        action,
+        password
+      })
+    });
+    const data = await res.json();
+    if (data.error) { alert("Error: " + data.error); return; }
+    renderUserData(data);
+    alert(`${action} purchase recorded! Points updated.`);
+  } catch (err) { alert("Failed: " + err.message); console.error(err); }
+}
 
-        await fetchAndRender();
-        document.querySelector(".purchase-buttons").style.display = "flex";
+// Fetch user data
+async function fetchAndRender() {
+  try {
+    const res = await fetch(BACKEND_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ userId: currentUser.userId, name: currentUser.displayName })
+    });
+    const data = await res.json();
+    if (data.error) { showError(data.error); return; }
+    renderUserData(data);
+  } catch (err) { showError(err.message || String(err)); }
+}
 
-      } catch (err) { showError(err.message || String(err)); }
-    }
+// Render user info
+function renderUserData(data) {
+  const tier = data.tier || "Silver";
+  const points = data.points ?? 0;
 
-    async function fetchAndRender() {
-      const res = await fetch(BACKEND_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ userId: currentUser.userId, name: currentUser.displayName })
-      });
-      const data = await res.json();
-      renderUserData(data);
-    }
+  document.getElementById("welcomeMsg").textContent = `Welcome, ${data.name || currentUser.displayName || data.userId}`;
+  document.getElementById("welcomeMsg").style.display = "block";
+  document.getElementById("cardName").textContent = data.name || currentUser.displayName || data.userId;
 
-    async function recordPurchase(points) {
-      try {
-        const res = await fetch(BACKEND_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ 
-            userId: currentUser.userId, 
-            name: currentUser.displayName, 
-            action: "purchase",
-            points
-          })
-        });
-        const data = await res.json();
-        renderUserData(data);
-        alert(`${points} points added!`);
-      } catch (err) {
-        alert("Failed to record purchase: " + err.message);
-      }
-    }
+  animatePoints(points);
 
-    function renderUserData(data) {
-      const tier = data.tier || "Silver";
-      const points = data.points ?? 0;
+  document.getElementById("cardFront").className = `flip-card-front ${tierClasses[tier]} text-center`;
+  document.getElementById("cardBack").className = `flip-card-back ${tierClasses[tier]} text-center`;
+  document.getElementById("tierBadge").textContent = tier;
 
-      document.getElementById("welcomeMsg").textContent = `Welcome, ${data.name || currentUser.displayName}`;
-      document.getElementById("welcomeMsg").style.display = "block";
-      document.getElementById("cardName").textContent = data.name || currentUser.displayName;
+  renderProgress(points);
 
-      animatePoints(points);
+  const badges = (data.badges || "").split(",").map(b => b.trim()).filter(Boolean);
+  document.getElementById("cardBadges").innerHTML = badges.map(b => `<span class="badge badge-star text-warning">⭐</span>`).join("");
 
-      const cardFront = document.getElementById("cardFront");
-      const cardBack = document.getElementById("cardBack");
-      cardFront.className = `flip-card-front ${tierClasses[tier]} text-center`;
-      cardBack.className = `flip-card-back ${tierClasses[tier]} text-center`;
+  const privList = document.getElementById("cardPrivileges");
+  privList.innerHTML = '';
+  (privilegesByTier[tier] || []).forEach(p => {
+    const li = document.createElement('li');
+    li.textContent = p;
+    privList.appendChild(li);
+  });
 
-      document.getElementById("tierBadge").textContent = tier;
-      renderProgress(points);
+  document.getElementById("loading").style.display = "none";
+  document.getElementById("card").style.display = "block";
+  document.getElementById("error").textContent = "";
+}
 
-      const badges = (data.badges || "").split(",").filter(Boolean);
-      document.getElementById("cardBadges").innerHTML = badges.map(() => `<span class="badge badge-star text-warning">⭐</span>`).join("");
+// Animate points counter
+function animatePoints(newPoints) {
+  const el = document.getElementById("cardPoints");
+  let current = Number(el.textContent);
+  const step = (newPoints - current) / 20;
+  let i = 0;
+  const interval = setInterval(() => {
+    if (i++ >= 20) { el.textContent = newPoints; clearInterval(interval); }
+    else el.textContent = Math.round(current + step * i);
+  }, 20);
+}
 
-      const privList = document.getElementById("cardPrivileges");
-      privList.innerHTML = '';
-      (privilegesByTier[tier] || []).forEach(p => {
-        const li = document.createElement('li');
-        li.textContent = p;
-        privList.appendChild(li);
-      });
+// Progress bar
+function renderProgress(points) {
+  const progressBar = document.getElementById("tierProgress");
+  let percent = Math.min(points, 100);
+  progressBar.style.width = percent + "%";
 
-      document.getElementById("loading").style.display = "none";
-      document.getElementById("card").style.display = "block";
-    }
+  let nextTierPoints = points < 50 ? 50 - points : points < 100 ? 100 - points : 0;
+  document.getElementById("progressText").textContent = nextTierPoints > 0 ? `${nextTierPoints} points to next tier` : 'Max tier reached';
+}
 
-    function animatePoints(newPoints) {
-      const el = document.getElementById("cardPoints");
-      let current = Number(el.textContent);
-      const step = (newPoints - current) / 20;
-      let i = 0;
-      const interval = setInterval(() => {
-        if (i++ >= 20) { el.textContent = newPoints; clearInterval(interval); }
-        else el.textContent = Math.round(current + step * i);
-      }, 20);
-    }
+function showError(msg) {
+  document.getElementById("loading").style.display = "none";
+  document.getElementById("card").style.display = "none";
+  document.getElementById("error").textContent = "Error: " + msg;
+  console.error(msg);
+}
 
-    function renderProgress(points) {
-      const progressBar = document.getElementById("tierProgress");
-      let percent = Math.min(points, 100);
-      progressBar.style.width = percent + "%";
-      let nextTierPoints = points < 50 ? 50 - points : points < 100 ? 100 - points : 0;
-      document.getElementById("progressText").textContent = nextTierPoints > 0 ? `${nextTierPoints} points to next tier` : 'Max tier reached';
-    }
-
-    function showError(msg) {
-      document.getElementById("loading").style.display = "none";
-      document.getElementById("card").style.display = "none";
-      document.querySelector(".purchase-buttons").style.display = "none";
-      document.getElementById("error").textContent = "Error: " + msg;
-    }
-
-    main();
-  </script>
+main();
+</script>
 
 </body>
 </html>
+
+
