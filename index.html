@@ -17,32 +17,40 @@
       align-items: center;
       padding: 1rem;
     }
+
     h1 {
       font-size: 2.5rem;
       font-weight: 700;
       text-align: center;
       margin-bottom: 0.5rem;
     }
+
     #welcomeMsg {
       font-size: 1.2rem;
       font-weight: 500;
       margin-bottom: 1rem;
       text-align: center;
     }
+
     .flip-card {
       width: 100%;
       max-width: 400px;
       perspective: 1000px;
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
     }
+
     .flip-card-inner {
       position: relative;
       width: 100%;
-      height: 250px;
+      height: 250px; /* fixed height to cover gradient */
       transition: transform 0.6s;
       transform-style: preserve-3d;
     }
-    .flip-card.flip .flip-card-inner { transform: rotateY(180deg); }
+
+    .flip-card.flip .flip-card-inner {
+      transform: rotateY(180deg);
+    }
+
     .flip-card-front, .flip-card-back {
       position: absolute;
       width: 100%;
@@ -56,31 +64,39 @@
       justify-content: space-between;
       color: #fff;
     }
+
     .flip-card-back { transform: rotateY(180deg); }
+
     .tier-silver { background: linear-gradient(135deg, #e0e0e0, #c0c0c0); color: #333; }
     .tier-gold { background: linear-gradient(135deg, #FFD700, #E6B800); color: #222; }
     .tier-black { background: linear-gradient(135deg, #080707, #1a1a1a); color: #fff; }
+
     .tier-badge { font-weight: 700; font-size: 0.9rem; padding: 0.3rem 0.6rem; }
     .points { font-size: 1.8rem; font-weight: 700; }
     .progress { height: 1.5rem; border-radius: 1rem; }
     .badge-star { font-size: 1.4rem; margin-right: 2px; }
-    #buttonsContainer {
+
+    .action-buttons {
       display: flex;
-      justify-content: center;
-      gap: 1rem;
+      justify-content: space-between;
+      max-width: 400px;
+      width: 100%;
+      gap: 0.5rem;
       margin-bottom: 2rem;
-      flex-wrap: wrap;
     }
-    .button-column {
+
+    .action-buttons .btn-group {
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
+      flex: 1;
     }
-    .action-btn { min-width: 120px; font-size: 1rem; padding: 0.8rem; }
+
     @media (max-width: 576px) {
       .flip-card-front, .flip-card-back { padding: 1rem; }
       .points { font-size: 1.5rem; }
-      .action-btn { width: 100%; text-align: center; }
+      .action-buttons { flex-direction: column; gap: 0.5rem; }
+      .action-buttons .btn-group { flex-direction: row; gap: 0.5rem; }
     }
   </style>
 </head>
@@ -88,7 +104,6 @@
 
 <h1>7-Eleven Membership</h1>
 <div id="welcomeMsg" style="display:none;"></div>
-
 <div id="loading" class="text-secondary mb-3">Loading...</div>
 <div id="error" class="text-danger mb-3"></div>
 
@@ -115,45 +130,52 @@
 </div>
 
 <!-- Action Buttons -->
-<div id="buttonsContainer">
-  <div class="button-column">
-    <button class="btn btn-primary action-btn" onclick="recordAction('coffee', 5)">All Cafe (+5)</button>
-    <button class="btn btn-primary action-btn" onclick="recordAction('select', 10)">All Select (+10)</button>
+<div class="action-buttons" id="actionButtons" style="display:none;">
+  <div class="btn-group">
+    <button class="btn btn-primary btn-lg" onclick="handleAction('coffee')">All Cafe (+5 pts)</button>
+    <button class="btn btn-primary btn-lg" onclick="handleAction('select')">All Select (+10 pts)</button>
   </div>
-  <div class="button-column">
-    <button class="btn btn-success action-btn" onclick="recordAction('bakery', 15)">+ Bakery (+15)</button>
-    <button class="btn btn-success action-btn" onclick="recordAction('foodbox', 15)">+ Food Box (+15)</button>
+  <div class="btn-group">
+    <button class="btn btn-success btn-lg" onclick="handleAction('bakery')">+ Bakery (+15 pts)</button>
+    <button class="btn btn-success btn-lg" onclick="handleAction('foodbox')">+ Food Box (+15 pts)</button>
   </div>
 </div>
 
 <script>
-const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzDs-D1SDPqheovkzYr9jso5RjtVqEXzXwUQbbWRCX-OGV2RX_ZO-imC7c3ArOF1EA6/exec";
-const LIFF_ID = "2007890960-Yjq6VQWo";
-
+const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzNaXm23i1ayzpEl1fBABCgoSuPU3TFpIT8vDc81ZJB0RTQ0hc5XmXbAGgoIuXt3dfJ/exec";
 let currentUser = { userId: null, displayName: null };
-const tierClasses = { "Silver":"tier-silver", "Gold":"tier-gold", "Black":"tier-black" };
-const privilegesByTier = {
-  "Silver": ["10% off coffee", "Monthly newsletter"],
-  "Gold": ["20% off coffee", "Exclusive events", "Birthday gift"],
-  "Black": ["30% off coffee", "VIP access", "Free delivery", "Birthday gift"]
-};
 
-// Main function
 async function main() {
   try {
-    await liff.init({ liffId: LIFF_ID });
+    await liff.init({ liffId: "2007890960-Yjq6VQWo" });
     if (!liff.isLoggedIn()) { liff.login(); return; }
+
     const profile = await liff.getProfile();
     currentUser.userId = profile.userId;
     currentUser.displayName = profile.displayName || "";
+
     await fetchAndRender();
   } catch (err) { showError(err.message || String(err)); }
 }
 
-// Record any button action
-async function recordAction(action, points) {
-  const password = prompt(`Enter password for ${action} purchase:`);
+async function fetchAndRender() {
+  try {
+    const res = await fetch(BACKEND_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ userId: currentUser.userId, name: currentUser.displayName })
+    });
+    if (!res.ok) throw new Error("Network response not ok: " + res.status);
+    const data = await res.json();
+    if (data.error) { showError(data.error); return; }
+    renderUserData(data);
+  } catch (err) { showError(err.message || String(err)); }
+}
+
+async function handleAction(action) {
+  const password = prompt(`Enter password for ${action}:`);
   if (!password) return;
+
   try {
     const res = await fetch(BACKEND_URL, {
       method: "POST",
@@ -165,44 +187,43 @@ async function recordAction(action, points) {
         password
       })
     });
+    if (!res.ok) throw new Error("Network response not ok: " + res.status);
     const data = await res.json();
     if (data.error) { alert("Error: " + data.error); return; }
     renderUserData(data);
     alert(`${action} purchase recorded! Points updated.`);
-  } catch (err) { alert("Failed: " + err.message); console.error(err); }
+  } catch (err) {
+    alert("Failed to record purchase: " + err.message);
+    console.error(err);
+  }
 }
 
-// Fetch user data
-async function fetchAndRender() {
-  try {
-    const res = await fetch(BACKEND_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ userId: currentUser.userId, name: currentUser.displayName })
-    });
-    const data = await res.json();
-    if (data.error) { showError(data.error); return; }
-    renderUserData(data);
-  } catch (err) { showError(err.message || String(err)); }
-}
-
-// Render user info
 function renderUserData(data) {
+  const tierClasses = { "Silver":"tier-silver", "Gold":"tier-gold", "Black":"tier-black" };
+  const privilegesByTier = {
+    "Silver": ["10% off coffee", "Monthly newsletter"],
+    "Gold": ["20% off coffee", "Exclusive events", "Birthday gift"],
+    "Black": ["30% off coffee", "VIP access", "Free delivery", "Birthday gift"]
+  };
+
   const tier = data.tier || "Silver";
   const points = data.points ?? 0;
 
-  document.getElementById("welcomeMsg").textContent = `Welcome, ${data.name || currentUser.displayName || data.userId}`;
-  document.getElementById("welcomeMsg").style.display = "block";
+  const welcomeMsg = document.getElementById("welcomeMsg");
+  welcomeMsg.textContent = `Welcome, ${data.name || currentUser.displayName || data.userId}`;
+  welcomeMsg.style.display = "block";
+
   document.getElementById("cardName").textContent = data.name || currentUser.displayName || data.userId;
 
-  animatePoints(points);
+  const cardFront = document.getElementById("cardFront");
+  const cardBack = document.getElementById("cardBack");
 
-  document.getElementById("cardFront").className = `flip-card-front ${tierClasses[tier]} text-center`;
-  document.getElementById("cardBack").className = `flip-card-back ${tierClasses[tier]} text-center`;
+  cardFront.className = `flip-card-front ${tierClasses[tier]} text-center`;
+  cardBack.className = `flip-card-back ${tierClasses[tier]} text-center`;
+
   document.getElementById("tierBadge").textContent = tier;
 
-  renderProgress(points);
-
+  document.getElementById("cardPoints").textContent = points;
   const badges = (data.badges || "").split(",").map(b => b.trim()).filter(Boolean);
   document.getElementById("cardBadges").innerHTML = badges.map(b => `<span class="badge badge-star text-warning">⭐</span>`).join("");
 
@@ -216,41 +237,20 @@ function renderUserData(data) {
 
   document.getElementById("loading").style.display = "none";
   document.getElementById("card").style.display = "block";
+  document.getElementById("actionButtons").style.display = "flex";
   document.getElementById("error").textContent = "";
-}
-
-// Animate points counter
-function animatePoints(newPoints) {
-  const el = document.getElementById("cardPoints");
-  let current = Number(el.textContent);
-  const step = (newPoints - current) / 20;
-  let i = 0;
-  const interval = setInterval(() => {
-    if (i++ >= 20) { el.textContent = newPoints; clearInterval(interval); }
-    else el.textContent = Math.round(current + step * i);
-  }, 20);
-}
-
-// Progress bar
-function renderProgress(points) {
-  const progressBar = document.getElementById("tierProgress");
-  let percent = Math.min(points, 100);
-  progressBar.style.width = percent + "%";
-
-  let nextTierPoints = points < 50 ? 50 - points : points < 100 ? 100 - points : 0;
-  document.getElementById("progressText").textContent = nextTierPoints > 0 ? `${nextTierPoints} points to next tier` : 'Max tier reached';
 }
 
 function showError(msg) {
   document.getElementById("loading").style.display = "none";
   document.getElementById("card").style.display = "none";
+  document.getElementById("actionButtons").style.display = "none";
   document.getElementById("error").textContent = "Error: " + msg;
   console.error(msg);
 }
 
 main();
 </script>
-
 </body>
 </html>
 
