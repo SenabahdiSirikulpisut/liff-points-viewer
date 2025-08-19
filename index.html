@@ -42,7 +42,7 @@
     .flip-card-inner {
       position: relative;
       width: 100%;
-      height: 250px; /* fixed height so gradient fills */
+      height: 250px;
       transition: transform 0.6s;
       transform-style: preserve-3d;
     }
@@ -65,38 +65,31 @@
       color: #fff;
     }
 
-    .flip-card-back {
-      transform: rotateY(180deg);
-    }
+    .flip-card-back { transform: rotateY(180deg); }
 
     .tier-silver { background: linear-gradient(135deg, #e0e0e0, #c0c0c0); color: #333; }
     .tier-gold { background: linear-gradient(135deg, #FFD700, #E6B800); color: #222; }
     .tier-black { background: linear-gradient(135deg, #080707, #1a1a1a); color: #fff; }
 
-    .tier-badge {
-      font-weight: 700;
-      font-size: 0.9rem;
-      padding: 0.3rem 0.6rem;
-    }
-
-    .points { 
-      font-size: 1.8rem; 
-      font-weight: 700; 
-    }
-
+    .tier-badge { font-weight: 700; font-size: 0.9rem; padding: 0.3rem 0.6rem; }
+    .points { font-size: 1.8rem; font-weight: 700; }
     .progress { height: 1.5rem; border-radius: 1rem; }
     .badge-star { font-size: 1.4rem; margin-right: 2px; }
 
-    #coffeeBtn {
+    .purchase-buttons {
       width: 100%;
       max-width: 400px;
-      margin-bottom: 2rem;
+    }
+    .purchase-buttons .btn {
+      font-size: 1.1rem;
+      padding: 1rem;
+      width: 100%;
+      border-radius: 0.75rem;
     }
 
     @media (max-width: 576px) {
       .flip-card-front, .flip-card-back { padding: 1rem; }
       .points { font-size: 1.5rem; }
-      #coffeeBtn { width: 100%; }
     }
   </style>
 </head>
@@ -119,7 +112,7 @@
         <div class="points mb-2">Points: <span id="cardPoints">0</span></div>
         <div id="cardBadges" class="mb-3"></div>
         <div class="progress mb-2">
-          <div id="tierProgress" class="progress-bar bg-dark" role="progressbar" style="width: 0%;" aria-valuemin="0" aria-valuemax="100"></div>
+          <div id="tierProgress" class="progress-bar bg-dark" role="progressbar" style="width: 0%;"></div>
         </div>
         <div id="progressText" class="fw-semibold"></div>
       </div>
@@ -130,7 +123,17 @@
     </div>
   </div>
 
-  <button id="coffeeBtn" class="btn btn-primary btn-lg" style="display:none;">Record Coffee Purchase</button>
+  <!-- Purchase Buttons -->
+  <div class="purchase-buttons row g-2" style="display:none;">
+    <div class="col-6 d-flex flex-column gap-2">
+      <button class="btn btn-success" onclick="recordPurchase(5)">All Cafe (+5)</button>
+      <button class="btn btn-warning" onclick="recordPurchase(10)">All Select (+10)</button>
+    </div>
+    <div class="col-6 d-flex flex-column gap-2">
+      <button class="btn btn-danger" onclick="recordPurchase(15)">+ Bakery (+15)</button>
+      <button class="btn btn-info" onclick="recordPurchase(15)">+ Food Box (+15)</button>
+    </div>
+  </div>
 
   <script>
     const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzC-XpWbaNvjva6y7QEOhO-rJVlhCn0Q2z3Q6f0XW9jy3R5ugPAQsrsnoi73n4SWCnk/exec";
@@ -154,33 +157,22 @@
         currentUser.displayName = profile.displayName || "";
 
         await fetchAndRender();
-
-        const coffeeBtn = document.getElementById("coffeeBtn");
-        coffeeBtn.style.display = "block";
-        coffeeBtn.onclick = async () => {
-          const password = prompt("Enter password to record coffee purchase:");
-          if (!password) return;
-          await recordCoffeePurchase(password);
-        };
+        document.querySelector(".purchase-buttons").style.display = "flex";
 
       } catch (err) { showError(err.message || String(err)); }
     }
 
     async function fetchAndRender() {
-      try {
-        const res = await fetch(BACKEND_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ userId: currentUser.userId, name: currentUser.displayName })
-        });
-        if (!res.ok) throw new Error("Network response not ok: " + res.status);
-        const data = await res.json();
-        if (data.error) { showError(data.error); return; }
-        renderUserData(data);
-      } catch (err) { showError(err.message || String(err)); }
+      const res = await fetch(BACKEND_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ userId: currentUser.userId, name: currentUser.displayName })
+      });
+      const data = await res.json();
+      renderUserData(data);
     }
 
-    async function recordCoffeePurchase(password) {
+    async function recordPurchase(points) {
       try {
         const res = await fetch(BACKEND_URL, {
           method: "POST",
@@ -188,18 +180,15 @@
           body: JSON.stringify({ 
             userId: currentUser.userId, 
             name: currentUser.displayName, 
-            action: "coffee_purchase",
-            password
+            action: "purchase",
+            points
           })
         });
-        if (!res.ok) throw new Error("Network response not ok: " + res.status);
         const data = await res.json();
-        if (data.error) { alert("Error: " + data.error); return; }
         renderUserData(data);
-        alert("Coffee purchase recorded! Points updated.");
+        alert(`${points} points added!`);
       } catch (err) {
         alert("Failed to record purchase: " + err.message);
-        console.error(err);
       }
     }
 
@@ -207,26 +196,22 @@
       const tier = data.tier || "Silver";
       const points = data.points ?? 0;
 
-      const welcomeMsg = document.getElementById("welcomeMsg");
-      welcomeMsg.textContent = `Welcome, ${data.name || currentUser.displayName || data.userId}`;
-      welcomeMsg.style.display = "block";
-
-      document.getElementById("cardName").textContent = data.name || currentUser.displayName || data.userId;
+      document.getElementById("welcomeMsg").textContent = `Welcome, ${data.name || currentUser.displayName}`;
+      document.getElementById("welcomeMsg").style.display = "block";
+      document.getElementById("cardName").textContent = data.name || currentUser.displayName;
 
       animatePoints(points);
 
       const cardFront = document.getElementById("cardFront");
       const cardBack = document.getElementById("cardBack");
-
       cardFront.className = `flip-card-front ${tierClasses[tier]} text-center`;
       cardBack.className = `flip-card-back ${tierClasses[tier]} text-center`;
 
       document.getElementById("tierBadge").textContent = tier;
-
       renderProgress(points);
 
-      const badges = (data.badges || "").split(",").map(b => b.trim()).filter(Boolean);
-      document.getElementById("cardBadges").innerHTML = badges.map(b => `<span class="badge badge-star text-warning">⭐</span>`).join("");
+      const badges = (data.badges || "").split(",").filter(Boolean);
+      document.getElementById("cardBadges").innerHTML = badges.map(() => `<span class="badge badge-star text-warning">⭐</span>`).join("");
 
       const privList = document.getElementById("cardPrivileges");
       privList.innerHTML = '';
@@ -238,8 +223,6 @@
 
       document.getElementById("loading").style.display = "none";
       document.getElementById("card").style.display = "block";
-      document.getElementById("coffeeBtn").style.display = "block";
-      document.getElementById("error").textContent = "";
     }
 
     function animatePoints(newPoints) {
@@ -257,21 +240,15 @@
       const progressBar = document.getElementById("tierProgress");
       let percent = Math.min(points, 100);
       progressBar.style.width = percent + "%";
-
-      let nextTierPoints = 0;
-      if (points < 50) nextTierPoints = 50 - points;
-      else if (points < 100) nextTierPoints = 100 - points;
-      else nextTierPoints = 0;
-
+      let nextTierPoints = points < 50 ? 50 - points : points < 100 ? 100 - points : 0;
       document.getElementById("progressText").textContent = nextTierPoints > 0 ? `${nextTierPoints} points to next tier` : 'Max tier reached';
     }
 
     function showError(msg) {
       document.getElementById("loading").style.display = "none";
       document.getElementById("card").style.display = "none";
-      document.getElementById("coffeeBtn").style.display = "none";
+      document.querySelector(".purchase-buttons").style.display = "none";
       document.getElementById("error").textContent = "Error: " + msg;
-      console.error(msg);
     }
 
     main();
