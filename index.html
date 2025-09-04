@@ -118,7 +118,7 @@
 <button id="coffeeBtn" class="btn btn-primary btn-lg" style="display:none;">Record Coffee Purchase</button>
 
 <script>
-const BACKEND_URL = "https://script.google.com/macros/s/AKfycby-VNqyFaWDsUB2FBChMwp6VwUjuY7avp_FbhNVN5BWTdHuP3nvdoK-m_skjsoJF1g/exec";
+const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxD4XE-TwmCQWZmfT9VSl61pLKQ1kb64NGVNsYh8mO7g5YCxvcm-6ifTn46p8T6SDhm/exec";
 const LIFF_ID = "2007890960-Yjq6VQWo";
 
 let currentUser = { userId: null, displayName: null };
@@ -177,7 +177,7 @@ async function recordPurchase(points, password) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        action: "record_purchase",   // backend expects this
+        action: "record_purchase",
         userId: currentUser.userId,
         name: currentUser.displayName,
         points: points,
@@ -246,7 +246,7 @@ function animatePoints(newPoints) {
 
 function renderProgress(points) {
   const progressBar = document.getElementById("tierProgress");
-  let percent = Math.min(points / 10, 100); // simple progress display
+  let percent = Math.min(points / 10, 100);
   progressBar.style.width = percent + "%";
 
   let nextTierPoints = 0;
@@ -261,16 +261,16 @@ function showError(msg) {
   document.getElementById("loading").style.display = "none";
   document.getElementById("card").style.display = "none";
   document.getElementById("coffeeBtn").style.display = "none";
-  document.getElementById("error").textContent =  "Error: " + msg;
-      console.error(msg);
-    }
-
-
+  document.getElementById("error").textContent = "Error: " + msg;
+  console.error(msg);
+}
 
 main();
 </script>
 
 </body>
 </html>
+
+
 
 
