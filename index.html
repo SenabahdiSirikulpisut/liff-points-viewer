@@ -132,154 +132,157 @@
 
   <button id="coffeeBtn" class="btn btn-primary btn-lg" style="display:none;">Record Coffee Purchase</button>
 
-  <script>
-    const BACKEND_URL = "https://script.google.com/macros/s/AKfycby-VNqyFaWDsUB2FBChMwp6VwUjuY7avp_FbhNVN5BWTdHuP3nvdoK-m_skjsoJF1g/exec";
-    const LIFF_ID = "2007890960-Yjq6VQWo";
+<script>
+const BACKEND_URL = "https://script.google.com/macros/s/AKfycby4hZO8jEGagYjvfo5JN7-VIYjtfa6A3lvms3MSHL3WAAsROaP8hGtwVfJATLTolw9Y/exec";
+const LIFF_ID = "2007890960-Yjq6VQWo";
 
-    let currentUser = { userId: null, displayName: null };
-    const tierClasses = { "Silver":"tier-silver", "Gold":"tier-gold", "Black":"tier-black" };
-    const privilegesByTier = {
-      "Silver": ["10% off coffee", "Monthly newsletter"],
-      "Gold": ["20% off coffee", "Exclusive events", "Birthday gift"],
-      "Black": ["30% off coffee", "VIP access", "Free delivery", "Birthday gift"]
+let currentUser = { userId: null, displayName: null };
+const tierClasses = { "Silver":"tier-silver", "Gold":"tier-gold", "Black":"tier-black" };
+const privilegesByTier = {
+  "Silver": ["10% off coffee", "Monthly newsletter"],
+  "Gold": ["20% off coffee", "Exclusive events", "Birthday gift"],
+  "Black": ["30% off coffee", "VIP access", "Free delivery", "Birthday gift"]
+};
+
+async function main() {
+  try {
+    await liff.init({ liffId: LIFF_ID });
+    if (!liff.isLoggedIn()) { liff.login(); return; }
+
+    const profile = await liff.getProfile();
+    currentUser.userId = profile.userId;
+    currentUser.displayName = profile.displayName || "";
+
+    await fetchAndRender();
+
+    const coffeeBtn = document.getElementById("coffeeBtn");
+    coffeeBtn.style.display = "block";
+    coffeeBtn.onclick = async () => {
+      const points = prompt("Enter points to award:");
+      if (!points || isNaN(points)) {
+        alert("Please enter a valid number.");
+        return;
+      }
+      const password = prompt("Enter staff password:");
+      if (!password) return;
+
+      await recordPurchase(Number(points), password);
     };
 
-    async function main() {
-      try {
-        await liff.init({ liffId: LIFF_ID });
-        if (!liff.isLoggedIn()) { liff.login(); return; }
+  } catch (err) { showError(err.message || String(err)); }
+}
 
-        const profile = await liff.getProfile();
-        currentUser.userId = profile.userId;
-        currentUser.displayName = profile.displayName || "";
+async function fetchAndRender() {
+  try {
+    const res = await fetch(BACKEND_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: currentUser.userId, name: currentUser.displayName })
+    });
+    if (!res.ok) throw new Error("Network response not ok: " + res.status);
+    const data = await res.json();
+    if (data.error) { showError(data.error); return; }
+    renderUserData(data);
+  } catch (err) { showError(err.message || String(err)); }
+}
 
-        await fetchAndRender();
+async function recordPurchase(points, password) {
+  try {
+    const res = await fetch(BACKEND_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "record_purchase",
+        userId: currentUser.userId,
+        name: currentUser.displayName,
+        points: points,
+        password: password
+      })
+    });
 
-        const coffeeBtn = document.getElementById("coffeeBtn");
-        coffeeBtn.style.display = "block";
-        coffeeBtn.onclick = async () => {
-          const password = prompt("Enter password to record coffee purchase:");
-          if (!password) return;
-          await recordCoffeePurchase(password);
-        };
-
-      } catch (err) { showError(err.message || String(err)); }
+    const data = await res.json();
+    if (data.error) {
+      alert("Error: " + data.error);
+      return;
     }
 
-    async function fetchAndRender() {
-      try {
-        const res = await fetch(BACKEND_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ userId: currentUser.userId, name: currentUser.displayName })
-        });
-        if (!res.ok) throw new Error("Network response not ok: " + res.status);
-        const data = await res.json();
-        if (data.error) { showError(data.error); return; }
-        renderUserData(data);
-      } catch (err) { showError(err.message || String(err)); }
-    }
+    renderUserData(data);
+    alert(`✅ ${points} points recorded for ${data.name}. New total: ${data.points}`);
+  } catch (err) {
+    alert("Failed to record purchase: " + err.message);
+    console.error(err);
+  }
+}
 
-    async function recordCoffeePurchase(password) {
-      try {
-        const res = await fetch(BACKEND_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ 
-            userId: currentUser.userId, 
-            name: currentUser.displayName, 
-            action: "coffee_purchase",
-            password
-          })
-        });
-        if (!res.ok) throw new Error("Network response not ok: " + res.status);
-        const data = await res.json();
-        if (data.error) { alert("Error: " + data.error); return; }
-        renderUserData(data);
-        alert("Coffee purchase recorded! Points updated.");
-      } catch (err) {
-        alert("Failed to record purchase: " + err.message);
-        console.error(err);
-      }
-    }
+function renderUserData(data) {
+  const tier = data.tier || "Silver";
+  const points = data.points ?? 0;
 
-    function renderUserData(data) {
-      const tier = data.tier || "Silver";
-      const points = data.points ?? 0;
+  document.getElementById("welcomeMsg").textContent = `Welcome, ${data.name || currentUser.displayName || data.userId}`;
+  document.getElementById("welcomeMsg").style.display = "block";
+  document.getElementById("cardName").textContent = data.name || currentUser.displayName || data.userId;
 
-      const welcomeMsg = document.getElementById("welcomeMsg");
-      welcomeMsg.textContent = `Welcome, ${data.name || currentUser.displayName || data.userId}`;
-      welcomeMsg.style.display = "block";
+  animatePoints(points);
 
-      document.getElementById("cardName").textContent = data.name || currentUser.displayName || data.userId;
+  const cardFront = document.getElementById("cardFront");
+  const cardBack = document.getElementById("cardBack");
+  cardFront.className = `flip-card-front ${tierClasses[tier]} text-center`;
+  cardBack.className = `flip-card-back ${tierClasses[tier]} text-center`;
+  document.getElementById("tierBadge").textContent = tier;
 
-      animatePoints(points);
+  renderProgress(points);
 
-      const cardFront = document.getElementById("cardFront");
-      const cardBack = document.getElementById("cardBack");
+  const badges = (data.badges || "").split(",").map(b => b.trim()).filter(Boolean);
+  document.getElementById("cardBadges").innerHTML = badges.map(b => `<span class="badge badge-star text-warning">⭐</span>`).join("");
 
-      cardFront.className = `flip-card-front ${tierClasses[tier]} text-center`;
-      cardBack.className = `flip-card-back ${tierClasses[tier]} text-center`;
+  const privList = document.getElementById("cardPrivileges");
+  privList.innerHTML = '';
+  (privilegesByTier[tier] || []).forEach(p => {
+    const li = document.createElement('li');
+    li.textContent = p;
+    privList.appendChild(li);
+  });
 
-      document.getElementById("tierBadge").textContent = tier;
+  document.getElementById("loading").style.display = "none";
+  document.getElementById("card").style.display = "block";
+  document.getElementById("coffeeBtn").style.display = "block";
+  document.getElementById("error").textContent = "";
+}
 
-      renderProgress(points);
+function animatePoints(newPoints) {
+  const el = document.getElementById("cardPoints");
+  let current = Number(el.textContent);
+  const step = (newPoints - current) / 20;
+  let i = 0;
+  const interval = setInterval(() => {
+    if (i++ >= 20) { el.textContent = newPoints; clearInterval(interval); }
+    else el.textContent = Math.round(current + step * i);
+  }, 20);
+}
 
-      const badges = (data.badges || "").split(",").map(b => b.trim()).filter(Boolean);
-      document.getElementById("cardBadges").innerHTML = badges.map(b => `<span class="badge badge-star text-warning">⭐</span>`).join("");
+function renderProgress(points) {
+  const progressBar = document.getElementById("tierProgress");
+  let percent = Math.min(points / 10, 100); // adjust percentage for display
+  progressBar.style.width = percent + "%";
 
-      const privList = document.getElementById("cardPrivileges");
-      privList.innerHTML = '';
-      (privilegesByTier[tier] || []).forEach(p => {
-        const li = document.createElement('li');
-        li.textContent = p;
-        privList.appendChild(li);
-      });
+  let nextTierPoints = 0;
+  if (points < 500) nextTierPoints = 500 - points;
+  else if (points < 1000) nextTierPoints = 1000 - points;
+  else nextTierPoints = 0;
 
-      document.getElementById("loading").style.display = "none";
-      document.getElementById("card").style.display = "block";
-      document.getElementById("coffeeBtn").style.display = "block";
-      document.getElementById("error").textContent = "";
-    }
+  document.getElementById("progressText").textContent = nextTierPoints > 0 ? `${nextTierPoints} points to next tier` : 'Max tier reached';
+}
 
-    function animatePoints(newPoints) {
-      const el = document.getElementById("cardPoints");
-      let current = Number(el.textContent);
-      const step = (newPoints - current) / 20;
-      let i = 0;
-      const interval = setInterval(() => {
-        if (i++ >= 20) { el.textContent = newPoints; clearInterval(interval); }
-        else el.textContent = Math.round(current + step * i);
-      }, 20);
-    }
+function showError(msg) {
+  document.getElementById("loading").style.display = "none";
+  document.getElementById("card").style.display = "none";
+  document.getElementById("coffeeBtn").style.display = "none";
+  document.getElementById("error").textContent = "Error: " + msg;
+  console.error(msg);
+}
 
-    function renderProgress(points) {
-      const progressBar = document.getElementById("tierProgress");
-      let percent = Math.min(points, 100);
-      progressBar.style.width = percent + "%";
-
-      let nextTierPoints = 0;
-      if (points < 50) nextTierPoints = 50 - points;
-      else if (points < 100) nextTierPoints = 100 - points;
-      else nextTierPoints = 0;
-
-      document.getElementById("progressText").textContent = nextTierPoints > 0 ? `${nextTierPoints} points to next tier` : 'Max tier reached';
-    }
-
-    function showError(msg) {
-      document.getElementById("loading").style.display = "none";
-      document.getElementById("card").style.display = "none";
-      document.getElementById("coffeeBtn").style.display = "none";
-      document.getElementById("error").textContent = "Error: " + msg;
-      console.error(msg);
-    }
-
-    main();
-  </script>
+main();
+</script>
 
 </body>
 </html>
-
-
-
-
