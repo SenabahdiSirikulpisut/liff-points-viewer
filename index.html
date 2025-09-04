@@ -58,7 +58,7 @@
 <button id="coffeeBtn" class="btn btn-primary btn-lg" style="display:none;">Record Coffee Purchase</button>
 
 <script>
-const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzJLDkBnrsxs7rCxG3qNLOTO6OqxVwV23H50Tr82YaZYH-kyp50Aw4JEYR-YD5baTge/exec";
+const BACKEND_URL = "https://script.google.com/macros/s/AKfycbwTINbU-3h33MophZDjLqusjHzPuBTzVQrENCNfAiIm84IZJK4DU9eya7vwuub95jeJ/exec";
 const LIFF_ID = "2007890960-Yjq6VQWo";
 
 let currentUser = { userId: null, displayName: null };
@@ -174,21 +174,20 @@ function animatePoints(newPoints) {
 function renderProgress(points) {
   const progressBar = document.getElementById("tierProgress");
   const tierThresholds = [500, 1000]; // Silver->Gold->Black
-  const badgeThresholds = [50, 150, 600]; // badges
 
-  const nextBadgePoints = badgeThresholds.find(threshold => points < threshold) || 0;
   const nextTierPoints = tierThresholds.find(threshold => points < threshold) || 0;
-  const targetPoints = nextBadgePoints > 0 ? nextBadgePoints : nextTierPoints > 0 ? nextTierPoints : points;
+  let percent = 0;
+  let text = 'Max tier reached';
 
-  let percent = targetPoints > 0 ? Math.min((points / targetPoints) * 100, 100) : 100;
+  if (nextTierPoints > 0) {
+    percent = Math.min((points / nextTierPoints) * 100, 100);
+    text = `${nextTierPoints - points} points to next tier`;
+  } else {
+    percent = 100;
+  }
+
   progressBar.style.width = percent + "%";
-
-  document.getElementById("progressText").textContent =
-    nextBadgePoints > 0
-      ? `${nextBadgePoints - points} points to next badge`
-      : nextTierPoints > 0
-        ? `${nextTierPoints - points} points to next tier`
-        : 'Max tier reached';
+  document.getElementById("progressText").textContent = text;
 }
 
 function showError(msg) {
@@ -203,7 +202,6 @@ main();
 </script>
 </body>
 </html>
-
 
 
 
