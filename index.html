@@ -12,10 +12,10 @@
   h1 { font-size: 2.5rem; font-weight: 700; text-align: center; margin-bottom: 0.5rem; }
   #welcomeMsg { font-size: 1.2rem; font-weight: 500; margin-bottom: 1rem; text-align: center; }
   .flip-card { width: 100%; max-width: 400px; perspective: 1000px; margin-bottom: 2rem; }
-  .flip-card-inner { position: relative; width: 100%; height: 300px; transition: transform 0.6s; transform-style: preserve-3d; }
+  .flip-card-inner { position: relative; width: 100%; height: 250px; transition: transform 0.6s; transform-style: preserve-3d; }
   .flip-card.flip .flip-card-inner { transform: rotateY(180deg); }
   .flip-card-front, .flip-card-back { position: absolute; width: 100%; height: 100%; border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 1.2rem; backface-visibility: hidden; display: flex; flex-direction: column; justify-content: space-between; color: #fff; overflow-y: auto; }
-  .flip-card-back { transform: rotateY(180deg); background: #fff; color: #212529; }
+  .flip-card-back { transform: rotateY(180deg); }
   .tier-silver { background: linear-gradient(135deg, #e0e0e0, #c0c0c0); color: #333; }
   .tier-gold { background: linear-gradient(135deg, #FFD700, #E6B800); color: #222; }
   .tier-black { background: linear-gradient(135deg, #080707, #1a1a1a); color: #fff; }
@@ -24,6 +24,8 @@
   .progress { height: 1.5rem; border-radius: 1rem; }
   .badge-star { font-size: 1.4rem; margin-right: 2px; }
   #coffeeBtn { width: 100%; max-width: 400px; margin-bottom: 2rem; }
+  .coupon { padding: 0.5rem; margin: 0.3rem 0; border-radius: 0.5rem; background: #fff3cd; color: #333; cursor: pointer; }
+  .coupon.redeemed { background: #e9ecef; color: #6c757d; text-decoration: line-through; cursor: not-allowed; }
   @media (max-width: 576px) { .flip-card-front, .flip-card-back { padding: 1rem; } .points { font-size: 1.5rem; } #coffeeBtn { width: 100%; } }
 </style>
 </head>
@@ -48,11 +50,9 @@
       </div>
       <div id="progressText" class="fw-semibold"></div>
     </div>
-    <div id="cardBack" class="flip-card-back text-start">
-      <h5>Privileges</h5>
-      <ul id="cardPrivileges" class="list-unstyled mb-3"></ul>
+    <div id="cardBack" class="flip-card-back tier-silver text-start">
       <h5>Coupons</h5>
-      <ul id="cardCoupons" class="list-unstyled"></ul>
+      <div id="cardCoupons"></div>
     </div>
   </div>
 </div>
@@ -65,11 +65,6 @@ const LIFF_ID = "2007890960-Yjq6VQWo";
 
 let currentUser = { userId: null, displayName: null };
 const tierClasses = { "Silver":"tier-silver", "Gold":"tier-gold", "Black":"tier-black" };
-const privilegesByTier = {
-  "Silver": ["10% off coffee", "Monthly newsletter"],
-  "Gold": ["20% off coffee", "Exclusive events", "Birthday gift"],
-  "Black": ["30% off coffee", "VIP access", "Free delivery", "Birthday gift"]
-};
 
 async function main() {
   try {
@@ -87,10 +82,8 @@ async function main() {
       if (!points || isNaN(points)) { alert("Enter a valid number."); return; }
       points = Number(points);
       if (points <= 0) { alert("Points must be >0."); return; }
-
       const password = prompt("Enter staff password:");
       if (!password) return;
-
       await recordPurchase(points, password);
     };
   } catch (err) { showError(err.message || String(err)); }
@@ -164,36 +157,22 @@ function renderUserData(data) {
   animatePoints(points);
 
   document.getElementById("cardFront").className = `flip-card-front ${tierClasses[tier]} text-center`;
-  document.getElementById("cardBack").className = `flip-card-back text-start`;
+  document.getElementById("cardBack").className = `flip-card-back ${tierClasses[tier]} text-start`;
 
   document.getElementById("tierBadge").textContent = tier;
-
   renderProgress(points);
 
   const badges = (data.badges || "").split(",").map(b => b.trim()).filter(Boolean);
   document.getElementById("cardBadges").innerHTML = badges.map(b => `<span class="badge badge-star text-warning">⭐</span>`).join("");
 
-  const privList = document.getElementById("cardPrivileges");
-  privList.innerHTML = '';
-  (privilegesByTier[tier] || []).forEach(p => { const li = document.createElement('li'); li.textContent = p; privList.appendChild(li); });
-
-  // Render coupons
-  const couponList = document.getElementById("cardCoupons");
-  couponList.innerHTML = '';
+  const couponDiv = document.getElementById("cardCoupons");
+  couponDiv.innerHTML = "";
   (data.coupons || []).forEach(c => {
-    const li = document.createElement('li');
-    li.textContent = c.name;
-    if (c.redeemed) {
-      li.style.textDecoration = "line-through";
-      li.style.color = "gray";
-    } else {
-      const btn = document.createElement('button');
-      btn.textContent = "Redeem";
-      btn.className = "btn btn-sm btn-outline-danger ms-2";
-      btn.onclick = async () => { await redeemCoupon(c.name); };
-      li.appendChild(btn);
-    }
-    couponList.appendChild(li);
+    const div = document.createElement("div");
+    div.textContent = c.name;
+    div.className = "coupon" + (c.redeemed ? " redeemed" : "");
+    if (!c.redeemed) div.onclick = () => redeemCoupon(c.name);
+    couponDiv.appendChild(div);
   });
 
   document.getElementById("loading").style.display = "none";
@@ -216,6 +195,7 @@ function animatePoints(newPoints) {
 function renderProgress(points) {
   const progressBar = document.getElementById("tierProgress");
   const tierThresholds = [500, 1000]; // Silver->Gold->Black
+
   const nextTierPoints = tierThresholds.find(threshold => points < threshold) || 0;
   let percent = 0;
   let text = 'Max tier reached';
@@ -243,8 +223,6 @@ main();
 </script>
 </body>
 </html>
-
-
 
 
 
