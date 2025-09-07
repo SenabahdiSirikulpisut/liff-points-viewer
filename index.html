@@ -12,10 +12,10 @@
   h1 { font-size: 2.5rem; font-weight: 700; text-align: center; margin-bottom: 0.5rem; }
   #welcomeMsg { font-size: 1.2rem; font-weight: 500; margin-bottom: 1rem; text-align: center; }
   .flip-card { width: 100%; max-width: 400px; perspective: 1000px; margin-bottom: 2rem; }
-  .flip-card-inner { position: relative; width: 100%; height: 250px; transition: transform 0.6s; transform-style: preserve-3d; }
+  .flip-card-inner { position: relative; width: 100%; height: 300px; transition: transform 0.6s; transform-style: preserve-3d; }
   .flip-card.flip .flip-card-inner { transform: rotateY(180deg); }
-  .flip-card-front, .flip-card-back { position: absolute; width: 100%; height: 100%; border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 1.2rem; backface-visibility: hidden; display: flex; flex-direction: column; justify-content: space-between; color: #fff; }
-  .flip-card-back { transform: rotateY(180deg); }
+  .flip-card-front, .flip-card-back { position: absolute; width: 100%; height: 100%; border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 1.2rem; backface-visibility: hidden; display: flex; flex-direction: column; justify-content: space-between; color: #fff; overflow-y: auto; }
+  .flip-card-back { transform: rotateY(180deg); background: #fff; color: #212529; }
   .tier-silver { background: linear-gradient(135deg, #e0e0e0, #c0c0c0); color: #333; }
   .tier-gold { background: linear-gradient(135deg, #FFD700, #E6B800); color: #222; }
   .tier-black { background: linear-gradient(135deg, #080707, #1a1a1a); color: #fff; }
@@ -48,9 +48,11 @@
       </div>
       <div id="progressText" class="fw-semibold"></div>
     </div>
-    <div id="cardBack" class="flip-card-back tier-silver text-center">
+    <div id="cardBack" class="flip-card-back text-start">
       <h5>Privileges</h5>
-      <ul id="cardPrivileges" class="list-unstyled mb-0"></ul>
+      <ul id="cardPrivileges" class="list-unstyled mb-3"></ul>
+      <h5>Coupons</h5>
+      <ul id="cardCoupons" class="list-unstyled"></ul>
     </div>
   </div>
 </div>
@@ -58,8 +60,8 @@
 <button id="coffeeBtn" class="btn btn-primary btn-lg" style="display:none;">Record Coffee Purchase</button>
 
 <script>
-const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxtWbP5arxK-5tOmj7yfBzp-qSj14YHeTQF_QxYTkiydWuizQWQYoN7P031cl5LI3-E/exec"; // Replace with Apps Script Web App URL
-const LIFF_ID = "2007890960-Yjq6VQWo"; // Replace with your LIFF ID
+const BACKEND_URL = "YOUR_DEPLOYED_SCRIPT_URL_HERE";
+const LIFF_ID = "2007890960-Yjq6VQWo";
 
 let currentUser = { userId: null, displayName: null };
 const tierClasses = { "Silver":"tier-silver", "Gold":"tier-gold", "Black":"tier-black" };
@@ -130,6 +132,27 @@ async function recordPurchase(points, password) {
   }
 }
 
+async function redeemCoupon(couponName) {
+  try {
+    const res = await fetch(BACKEND_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({
+        action: "redeem_coupon",
+        userId: currentUser.userId,
+        coupon: couponName
+      })
+    });
+    const data = await res.json();
+    if (data.error) { alert("Error: " + data.error); return; }
+    renderUserData(data);
+    alert(`🎟️ Coupon redeemed: ${couponName}`);
+  } catch (err) {
+    alert("Failed to redeem coupon: " + err.message);
+    console.error(err);
+  }
+}
+
 function renderUserData(data) {
   const tier = data.tier || "Silver";
   const points = data.points ?? 0;
@@ -141,7 +164,7 @@ function renderUserData(data) {
   animatePoints(points);
 
   document.getElementById("cardFront").className = `flip-card-front ${tierClasses[tier]} text-center`;
-  document.getElementById("cardBack").className = `flip-card-back ${tierClasses[tier]} text-center`;
+  document.getElementById("cardBack").className = `flip-card-back text-start`;
 
   document.getElementById("tierBadge").textContent = tier;
 
@@ -153,6 +176,25 @@ function renderUserData(data) {
   const privList = document.getElementById("cardPrivileges");
   privList.innerHTML = '';
   (privilegesByTier[tier] || []).forEach(p => { const li = document.createElement('li'); li.textContent = p; privList.appendChild(li); });
+
+  // Render coupons
+  const couponList = document.getElementById("cardCoupons");
+  couponList.innerHTML = '';
+  (data.coupons || []).forEach(c => {
+    const li = document.createElement('li');
+    li.textContent = c.name;
+    if (c.redeemed) {
+      li.style.textDecoration = "line-through";
+      li.style.color = "gray";
+    } else {
+      const btn = document.createElement('button');
+      btn.textContent = "Redeem";
+      btn.className = "btn btn-sm btn-outline-danger ms-2";
+      btn.onclick = async () => { await redeemCoupon(c.name); };
+      li.appendChild(btn);
+    }
+    couponList.appendChild(li);
+  });
 
   document.getElementById("loading").style.display = "none";
   document.getElementById("card").style.display = "block";
@@ -174,14 +216,15 @@ function animatePoints(newPoints) {
 function renderProgress(points) {
   const progressBar = document.getElementById("tierProgress");
   const tierThresholds = [500, 1000]; // Silver->Gold->Black
-  let nextTierPoints = tierThresholds.find(threshold => points < threshold);
-
-  let percent = 100;
+  const nextTierPoints = tierThresholds.find(threshold => points < threshold) || 0;
+  let percent = 0;
   let text = 'Max tier reached';
 
-  if (nextTierPoints !== undefined) {
+  if (nextTierPoints > 0) {
     percent = Math.min((points / nextTierPoints) * 100, 100);
     text = `${nextTierPoints - points} points to next tier`;
+  } else {
+    percent = 100;
   }
 
   progressBar.style.width = percent + "%";
@@ -200,7 +243,6 @@ main();
 </script>
 </body>
 </html>
-
 
 
 
