@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>7-Eleven Membership</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <style>
   body { font-family: 'Oxanium', cursive; background: #f8f9fa; color: #212529; display: flex; flex-direction: column; align-items: center; padding: 1rem; }
-  h1 { font-size: 2.5rem; font-weight: 700; text-align: center; margin-bottom: 0.5rem; }
-  #welcomeMsg { font-size: 1.2rem; font-weight: 500; margin-bottom: 1rem; text-align: center; }
-  .flip-card { width: 100%; max-width: 400px; perspective: 1000px; margin-bottom: 2rem; }
-  .flip-card-inner { position: relative; width: 100%; height: 300px; transition: transform 0.6s; transform-style: preserve-3d; }
+  h1 { font-size: 2.2rem; font-weight: 700; text-align: center; margin-bottom: 0.5rem; }
+  #welcomeMsg { font-size: 1.05rem; font-weight: 500; margin-bottom: 1rem; text-align: center; }
+  .flip-card { width: 100%; max-width: 420px; perspective: 1000px; margin-bottom: 1.25rem; cursor: pointer; }
+  .flip-card-inner { position: relative; width: 100%; height: 320px; transition: transform 0.6s; transform-style: preserve-3d; }
   .flip-card.flip .flip-card-inner { transform: rotateY(180deg); }
   .flip-card-front, .flip-card-back { position: absolute; width: 100%; height: 100%; border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 1.2rem; backface-visibility: hidden; display: flex; flex-direction: column; justify-content: space-between; color: #fff; }
   .flip-card-back { transform: rotateY(180deg); }
@@ -20,120 +20,219 @@
   .tier-gold { background: linear-gradient(135deg, #FFD700, #E6B800); color: #222; }
   .tier-black { background: linear-gradient(135deg, #080707, #1a1a1a); color: #fff; }
   .tier-badge { font-weight: 700; font-size: 0.9rem; padding: 0.3rem 0.6rem; }
-  .points { font-size: 1.8rem; font-weight: 700; }
+  .points { font-size: 1.6rem; font-weight: 700; }
   .progress { height: 1.5rem; border-radius: 1rem; }
-  .badge-star { font-size: 1.4rem; margin-right: 2px; }
-  #coffeeBtn { width: 100%; max-width: 400px; margin-bottom: 2rem; }
   .streak { display: flex; justify-content: center; margin-top: 0.5rem; }
   .streak-day { width: 28px; height: 28px; border-radius: 50%; background: #ccc; color: #fff; display: flex; align-items: center; justify-content: center; margin: 0 2px; font-weight: bold; }
   .streak-active { background: #28a745; }
-  .coupon { display: inline-block; margin: 4px; padding: 4px 6px; border-radius: 4px; background: #ffc107; color: #000; cursor: pointer; font-size: 0.85rem; }
-  .coupon.redeemed { background: #6c757d; cursor: default; text-decoration: line-through; }
-  @media (max-width: 576px) { .flip-card-front, .flip-card-back { padding: 1rem; } .points { font-size: 1.5rem; } #coffeeBtn { width: 100%; } }
+  .coupon { display: inline-flex; align-items: center; gap:6px; margin: 4px; padding: 6px 8px; border-radius: 8px; background: #ffc107; color: #000; cursor: pointer; font-size: 0.9rem; border: 1px solid rgba(0,0,0,0.08); }
+  .coupon.disabled { background: #e9ecef; color:#6c757d; cursor: not-allowed; text-decoration: line-through; }
+  .coupon.selected { box-shadow: 0 4px 14px rgba(0,0,0,0.12); transform: translateY(-2px); border: 2px solid #0d6efd; }
+  .coupon .count { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 6px; font-weight:700; }
+  #coffeeBtn, #redeemBtn { width: 100%; max-width: 420px; margin-bottom: 0.6rem; }
+  #couponHistory { max-height: 120px; overflow:auto; font-size:0.9rem; background: rgba(255,255,255,0.06); padding: 8px; border-radius: 8px; }
+  #loading { margin-bottom: 0.6rem; }
+  @media (max-width: 576px) { .flip-card-front, .flip-card-back { padding: 1rem; } .points { font-size: 1.4rem; } #coffeeBtn { width: 100%; } }
 </style>
 </head>
 <body>
 
 <h1>7-Eleven Membership</h1>
 <div id="welcomeMsg" style="display:none;"></div>
-<div id="loading" class="text-secondary mb-3">Loading...</div>
-<div id="error" class="text-danger mb-3"></div>
+<div id="loading" class="text-secondary mb-2">Loading...</div>
+<div id="error" class="text-danger mb-2"></div>
 
-<div id="card" class="flip-card" style="display:none;" onclick="this.classList.toggle('flip')">
-  <div class="flip-card-inner">
+<!-- Member card (click to flip) -->
+<div id="card" class="flip-card" style="display:none;" onclick="toggleFlip()">
+  <div id="flipInner" class="flip-card-inner">
     <div id="cardFront" class="flip-card-front tier-silver text-center">
       <div class="d-flex justify-content-between align-items-center mb-2">
         <span id="cardName" class="fs-5 fw-semibold">Member Name</span>
         <span id="tierBadge" class="badge tier-badge bg-light text-dark">Silver</span>
       </div>
       <div class="points mb-2">Points: <span id="cardPoints">0</span></div>
-      <div id="cardBadges" class="mb-3"></div>
+      <div id="cardBadges" class="mb-2"></div>
       <div class="progress mb-2">
         <div id="tierProgress" class="progress-bar bg-dark" role="progressbar" style="width: 0%;" aria-valuemin="0" aria-valuemax="100"></div>
       </div>
-      <div id="progressText" class="fw-semibold mb-2"></div>
+      <div id="progressText" class="fw-semibold mb-2 small"></div>
       <div class="streak" id="streakContainer"></div>
     </div>
+
     <div id="cardBack" class="flip-card-back tier-silver text-center">
-      <h5>Coupons</h5>
-      <div id="couponContainer"></div>
+      <div>
+        <h5 style="margin-bottom:.4rem">Coupons</h5>
+        <div id="couponContainer" class="mb-2"></div>
+        <div class="d-flex gap-2 mb-2">
+          <button id="redeemBtn" class="btn btn-outline-primary btn-sm" title="Redeem selected coupon without awarding points" style="flex:1; display:none;">
+            Redeem Selected Coupon (no points)
+          </button>
+          <button id="clearSelectionBtn" class="btn btn-outline-secondary btn-sm" style="display:none;">Clear</button>
+        </div>
+
+        <h6 class="mt-2 mb-1">Coupon history</h6>
+        <div id="couponHistory" class="text-start small"></div>
+      </div>
     </div>
   </div>
 </div>
 
+<!-- Staff actions -->
 <button id="coffeeBtn" class="btn btn-primary btn-lg" style="display:none;">Record Coffee Purchase</button>
 
 <script>
-const BACKEND_URL = "https://script.google.com/macros/s/AKfycbx_rjSM01iLjn2nis5dMr9m7yTFrkX_efTE_FuaHB1RtYoZw20GUCwpo5ZzmFxGrwRf/exec";
+/*
+  Frontend that integrates with backend:
+   - supplies claimCoupon when recording purchases
+   - can redeem coupon immediately (points = 0) with staff password
+   - shows coupon claim history
+*/
+
+const BACKEND_URL = "https://script.google.com/macros/s/AKfycbwgDqv17agY_nsR8PMGZPwhl0gN6ik7O8h4oxl33mJhMW83731Cb3I93FUTEf95Cvl_/exec";
 const LIFF_ID = "2007890960-Yjq6VQWo";
 
 let currentUser = { userId: null, displayName: null };
 const tierClasses = { "Silver":"tier-silver", "Gold":"tier-gold", "Black":"tier-black" };
 
+let selectedCouponKey = null; // single coupon selection
+let latestData = null;        // store latest server response
+
+// LIFF init and initial fetch
 async function main() {
   try {
-    await liff.init({ liffId: LIFF_ID });
-    if (!liff.isLoggedIn()) { liff.login(); return; }
-    const profile = await liff.getProfile();
-    currentUser.userId = profile.userId;
-    currentUser.displayName = profile.displayName || "";
+    // init LIFF if available (works inside LINE)
+    if (window.liff) {
+      await liff.init({ liffId: LIFF_ID });
+      if (!liff.isLoggedIn()) { liff.login(); return; }
+      const profile = await liff.getProfile();
+      currentUser.userId = profile.userId;
+      currentUser.displayName = profile.displayName || "";
+    } else {
+      // Not in LIFF — fallback: ask for userId (developer/test usage)
+      currentUser.userId = prompt("Enter userId for testing (or press Cancel to stop):");
+      currentUser.displayName = currentUser.userId ? currentUser.userId : "";
+      if (!currentUser.userId) {
+        showError("No userId provided and LIFF not available.");
+        return;
+      }
+    }
+
+    document.getElementById("welcomeMsg").style.display = "block";
     await fetchAndRender();
 
-    const coffeeBtn = document.getElementById("coffeeBtn");
-    coffeeBtn.style.display = "block";
-    coffeeBtn.onclick = async () => {
-      let points = prompt("Enter points to award:");
-      if (!points || isNaN(points)) { alert("Enter a valid number."); return; }
-      points = Number(points);
-      if (points <= 0) { alert("Points must be >0."); return; }
+    // Wire up buttons
+    document.getElementById("coffeeBtn").style.display = "block";
+    document.getElementById("coffeeBtn").onclick = onRecordPurchaseClick;
 
-      const password = prompt("Enter staff password:");
-      if (!password) return;
-
-      await recordPurchase(points, password);
+    document.getElementById("redeemBtn").onclick = onRedeemSelected;
+    document.getElementById("clearSelectionBtn").onclick = () => {
+      selectedCouponKey = null;
+      renderCoupons(latestData?.coupons || {});
     };
-  } catch (err) { showError(err.message || String(err)); }
+  } catch (err) {
+    showError(err.message || String(err));
+  }
 }
 
+// fetch user data from backend & render
 async function fetchAndRender() {
+  showLoading(true);
   try {
     const res = await fetch(BACKEND_URL, {
       method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId: currentUser.userId, name: currentUser.displayName })
     });
     const data = await res.json();
     if (data.error) { showError(data.error); return; }
+    latestData = data;
     renderUserData(data);
-  } catch (err) { showError(err.message || String(err)); }
-}
-
-async function recordPurchase(points, password) {
-  try {
-    const res = await fetch(BACKEND_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({
-        action: "record_purchase",
-        userId: currentUser.userId,
-        name: currentUser.displayName,
-        points: points,
-        password: password
-      })
-    });
-    const data = await res.json();
-    if (data.error) { alert("Error: " + data.error); return; }
-    renderUserData(data);
-    alert(`✅ ${points} points recorded for ${data.name}. New total: ${data.points}`);
   } catch (err) {
-    alert("Failed to record purchase: " + err.message);
-    console.error(err);
+    showError(err.message || String(err));
+  } finally {
+    showLoading(false);
   }
 }
 
+// record purchase flow (includes optional selected coupon)
+async function onRecordPurchaseClick() {
+  // staff enters points and password
+  let input = prompt("Enter points to award (integer). Enter 0 to award none:");
+  if (input === null) return; // cancelled
+  const points = Number(input);
+  if (isNaN(points) || points < 0) { alert("Please enter a valid non-negative number."); return; }
+
+  const password = prompt("Enter staff password:");
+  if (password === null) return;
+
+  // If a coupon was selected, include it
+  const claimCoupon = selectedCouponKey || "";
+
+  await recordPurchase(points, password, claimCoupon);
+}
+
+// call backend with record_purchase (points can be 0). claimCoupon optional.
+async function recordPurchase(points, password, claimCoupon) {
+  showLoading(true);
+  try {
+    const payload = {
+      action: "record_purchase",
+      userId: currentUser.userId,
+      name: currentUser.displayName,
+      points: Number(points) || 0,
+      password: password
+    };
+    if (claimCoupon) payload.claimCoupon = claimCoupon;
+
+    const res = await fetch(BACKEND_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.error) { alert("Error: " + data.error); return; }
+
+    // Update UI
+    latestData = data;
+    selectedCouponKey = null; // clear selection after attempt
+    renderUserData(data);
+
+    // Show nice message
+    if (payload.claimCoupon) {
+      const last = (data.couponClaimed && data.couponClaimed.length) ? data.couponClaimed[data.couponClaimed.length - 1] : null;
+      if (last && last.status === "redeemed") {
+        alert(`✅ ${points} points recorded. Coupon "${last.coupon}" redeemed.`);
+      } else if (last && last.status === "failed") {
+        alert(`⚠️ ${points} points recorded. Coupon "${last.coupon}" redemption failed.`);
+      } else {
+        alert(`✅ ${points} points recorded.`);
+      }
+    } else {
+      alert(`✅ ${points} points recorded.`);
+    }
+  } catch (err) {
+    alert("Failed to record purchase: " + err.message);
+    console.error(err);
+  } finally {
+    showLoading(false);
+  }
+}
+
+// Redeem selected coupon immediately without awarding points
+async function onRedeemSelected() {
+  if (!selectedCouponKey) { alert("Select a coupon first (tap a coupon)."); return; }
+  const ok = confirm(`Redeem 1 "${selectedCouponKey}" for this user (no points awarded)? Staff must confirm password next.`);
+  if (!ok) return;
+  const password = prompt("Enter staff password:");
+  if (password === null) return;
+  // call recordPurchase with points=0
+  await recordPurchase(0, password, selectedCouponKey);
+}
+
+// render user data on card
 function renderUserData(data) {
   const tier = data.tier || "Silver";
-  const points = data.points ?? 0;
+  const points = Number(data.points || 0);
 
   document.getElementById("welcomeMsg").textContent = `Welcome, ${data.name || currentUser.displayName || data.userId}`;
   document.getElementById("welcomeMsg").style.display = "block";
@@ -143,13 +242,26 @@ function renderUserData(data) {
 
   document.getElementById("cardFront").className = `flip-card-front ${tierClasses[tier]} text-center`;
   document.getElementById("cardBack").className = `flip-card-back ${tierClasses[tier]} text-center`;
-
   document.getElementById("tierBadge").textContent = tier;
 
-  renderProgress(points);
+  // badges
+  const badgesEl = document.getElementById("cardBadges");
+  badgesEl.innerHTML = "";
+  if (data.badges) {
+    const arr = (typeof data.badges === "string") ? data.badges.split(",").map(s => s.trim()).filter(Boolean) : data.badges;
+    arr.forEach(b => {
+      const span = document.createElement("span");
+      span.className = "badge bg-white text-dark me-1";
+      span.style.fontWeight = "600";
+      span.textContent = b;
+      badgesEl.appendChild(span);
+    });
+  }
 
+  renderProgress(points);
   renderStreak(data.streakDay || 0);
   renderCoupons(data.coupons || {});
+  renderCouponHistory(data.couponClaimed || []);
 
   document.getElementById("loading").style.display = "none";
   document.getElementById("card").style.display = "block";
@@ -157,17 +269,21 @@ function renderUserData(data) {
   document.getElementById("error").textContent = "";
 }
 
+// animate points number
 function animatePoints(newPoints) {
   const el = document.getElementById("cardPoints");
-  let current = Number(el.textContent);
-  const step = (newPoints - current) / 20;
+  const current = Number(el.textContent) || 0;
+  const steps = 20;
+  const stepVal = (newPoints - current) / steps;
   let i = 0;
   const interval = setInterval(() => {
-    if (i++ >= 20) { el.textContent = newPoints; clearInterval(interval); }
-    else el.textContent = Math.round(current + step * i);
-  }, 20);
+    i++;
+    if (i >= steps) { el.textContent = newPoints; clearInterval(interval); }
+    else el.textContent = Math.round(current + stepVal * i);
+  }, 15);
 }
 
+// progress to next tier
 function renderProgress(points) {
   const progressBar = document.getElementById("tierProgress");
   const tierThresholds = [500, 1000];
@@ -179,6 +295,7 @@ function renderProgress(points) {
   document.getElementById("progressText").textContent = text;
 }
 
+// streak UI
 function renderStreak(streakDay) {
   const container = document.getElementById("streakContainer");
   container.innerHTML = "";
@@ -190,24 +307,79 @@ function renderStreak(streakDay) {
   }
 }
 
+// render coupons - single-selection UX (shows key & count)
 function renderCoupons(coupons) {
   const container = document.getElementById("couponContainer");
   container.innerHTML = "";
-  for (const [key,value] of Object.entries(coupons)){
-    for(let i=0;i<value;i++){
-      const c = document.createElement("span");
-      c.className = "coupon";
-      c.textContent = key;
-      c.onclick = async () => {
-        if(c.classList.contains("redeemed")) return;
-        if(confirm(`Redeem 1 ${key}?`)){
-          c.classList.add("redeemed");
-          // TODO: optionally call backend to decrement coupon
-        }
-      };
-      container.appendChild(c);
-    }
+  selectedCouponKey = (selectedCouponKey && (coupons[selectedCouponKey] > 0)) ? selectedCouponKey : null;
+
+  const keys = Object.keys(coupons || {});
+  if (keys.length === 0) {
+    container.textContent = "No coupons available.";
+    document.getElementById("redeemBtn").style.display = "none";
+    document.getElementById("clearSelectionBtn").style.display = "none";
+    return;
   }
+
+  keys.forEach(key => {
+    const count = Number(coupons[key]) || 0;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "coupon" + (count <= 0 ? " disabled" : "") + (selectedCouponKey === key ? " selected" : "");
+    btn.title = `${key} — ${count} available`;
+    btn.innerHTML = `<span>${key}</span> <span class="count">${count}</span>`;
+    btn.onclick = (ev) => {
+      ev.stopPropagation(); // prevent flipping card
+      if (count <= 0) { alert("This coupon is no longer available."); return; }
+      // Toggle selection (single)
+      if (selectedCouponKey === key) selectedCouponKey = null;
+      else selectedCouponKey = key;
+      renderCoupons(latestData?.coupons || {});
+      // show redeem controls if selection exists
+      updateRedeemControls();
+    };
+    container.appendChild(btn);
+  });
+
+  updateRedeemControls();
+}
+
+function updateRedeemControls() {
+  const hasSelection = !!selectedCouponKey;
+  document.getElementById("redeemBtn").style.display = hasSelection ? "block" : "none";
+  document.getElementById("clearSelectionBtn").style.display = hasSelection ? "block" : "none";
+  if (hasSelection) document.getElementById("redeemBtn").textContent = `Redeem "${selectedCouponKey}" (no points)`;
+}
+
+// coupon claim history
+function renderCouponHistory(historyArr) {
+  const el = document.getElementById("couponHistory");
+  el.innerHTML = "";
+  if (!Array.isArray(historyArr) || historyArr.length === 0) {
+    el.textContent = "No coupon claims recorded.";
+    return;
+  }
+  const ul = document.createElement("ul");
+  ul.style.paddingLeft = "16px";
+  ul.style.margin = "0";
+  historyArr.slice().reverse().forEach(item => {
+    const li = document.createElement("li");
+    const s = `${item.date || '-'} — ${item.coupon || '-'} — ${item.status || 'unknown'}`;
+    li.textContent = s;
+    ul.appendChild(li);
+  });
+  el.appendChild(ul);
+}
+
+// flip card only by clicking card (we prevent clicks from inner buttons toggling)
+function toggleFlip() {
+  const card = document.getElementById("card");
+  card.classList.toggle("flip");
+}
+
+// show/hide loading and error
+function showLoading(flag) {
+  document.getElementById("loading").style.display = flag ? "block" : "none";
 }
 
 function showError(msg) {
@@ -218,30 +390,11 @@ function showError(msg) {
   console.error(msg);
 }
 
+// kick off
 main();
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
