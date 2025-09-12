@@ -64,7 +64,7 @@
 <button id="coffeeBtn" class="btn btn-primary btn-lg" style="display:none;">Record Coffee Purchase</button>
 
 <script>
-const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxYnQR6xaqBlZR0haLdiHV2Qw9jmu7JJciofMZ-QgWbuvlP-wQqvsN5ntqAGFhCUNDm/exec";
+const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxsQjIFiytkF5UfFI2A_lxPncylMdJXmekb-xwXCbnGdvJApN4JbZ-YoGrVWzWAwC91/exec";
 const LIFF_ID = "2007890960-Yjq6VQWo";
 
 let currentUser = { userId: null, displayName: null };
@@ -99,7 +99,7 @@ async function fetchAndRender() {
   try {
     const res = await fetch(BACKEND_URL, {
       method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },  // FIXED
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify({ userId: currentUser.userId, name: currentUser.displayName })
     });
     const data = await res.json();
@@ -112,7 +112,7 @@ async function recordPurchase(points, password) {
   try {
     const res = await fetch(BACKEND_URL, {
       method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },  // FIXED
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify({
         action: "record_purchase",
         userId: currentUser.userId,
@@ -147,9 +147,8 @@ function renderUserData(data) {
   document.getElementById("tierBadge").textContent = tier;
 
   renderProgress(points);
-
   renderStreak(data.streakDay || 0);
-  renderCoupons(data.coupons || {});
+  renderCoupons(data.coupons || {}, data.couponClaimed || []);
 
   document.getElementById("loading").style.display = "none";
   document.getElementById("card").style.display = "block";
@@ -190,21 +189,46 @@ function renderStreak(streakDay) {
   }
 }
 
-function renderCoupons(coupons) {
+function renderCoupons(coupons, couponClaimedArr = []) {
   const container = document.getElementById("couponContainer");
   container.innerHTML = "";
-  for (const [key,value] of Object.entries(coupons)){
-    for(let i=0;i<value;i++){
+
+  const claimedCoupons = couponClaimedArr.map(c => c.coupon);
+
+  for (const [key, value] of Object.entries(coupons)) {
+    for (let i = 0; i < value; i++) {
       const c = document.createElement("span");
       c.className = "coupon";
       c.textContent = key;
-      c.onclick = async () => {
-        if(c.classList.contains("redeemed")) return;
-        if(confirm(`Redeem 1 ${key}?`)){
-          c.classList.add("redeemed");
-          // TODO: optionally call backend to decrement coupon
-        }
-      };
+
+      if (claimedCoupons.includes(key)) {
+        c.classList.add("redeemed");
+        c.textContent = key + " ✅ Claimed";
+      } else {
+        c.onclick = async () => {
+          if (c.classList.contains("redeemed")) return;
+          if (confirm(`Redeem 1 ${key}?`)) {
+            const password = prompt("Enter staff password:");
+            if (!password) return;
+
+            const res = await fetch(BACKEND_URL, {
+              method: "POST",
+              headers: { "Content-Type": "text/plain;charset=utf-8" },
+              body: JSON.stringify({
+                action: "record_purchase",
+                userId: currentUser.userId,
+                name: currentUser.displayName,
+                claimCoupon: key,
+                password: password
+              })
+            });
+            const data = await res.json();
+            if (data.error) { alert("Error: " + data.error); return; }
+            renderCoupons(data.coupons || {}, data.couponClaimed || []);
+          }
+        };
+      }
+
       container.appendChild(c);
     }
   }
@@ -222,12 +246,3 @@ main();
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
